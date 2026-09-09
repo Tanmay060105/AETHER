@@ -2,7 +2,7 @@ import React from "react";
 import { TraceNetwork } from "@/components/visualizations/TraceNetwork";
 import { TelemetryField } from "@/components/visualizations/TelemetryField";
 import { EvaluationSignal } from "@/components/visualizations/EvaluationSignal";
-import { AIHealthField } from "@/components/visualizations/AIHealthField";
+import { IncidentSignal } from "@/components/visualizations/IncidentSignal";
 import { OptimizationPath } from "@/components/visualizations/OptimizationPath";
 
 export interface SpatialNodeData {
@@ -35,7 +35,7 @@ export const spatialNodes: SpatialNodeData[] = [
     id: "diagnose",
     label: "DIAGNOSE",
     hash: "#diagnose",
-    component: <AIHealthField />,
+    component: <IncidentSignal />,
   },
   {
     id: "optimize",

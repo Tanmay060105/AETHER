@@ -365,7 +365,7 @@ function SectionDiagnose() {
           <div className="lg:col-start-8 lg:col-span-5 relative z-10 flex flex-col lg:items-end lg:text-right order-1 lg:order-2">
             <SectionTextReveal sectionHash="#diagnose" enterFrom="right" className="lg:items-end">
               <span className="text-[10px] md:text-[12px] font-mono text-tertiary uppercase mb-6 tracking-widest block">
-                AETHER / 04 — INCIDENTS
+                AETHER / 04 — DIAGNOSE
               </span>
               <div className="overflow-hidden mb-8 lg:mb-10">
                 <motion.h2 style={{ y }} className="text-[clamp(56px,7vw,120px)] leading-[0.9] tracking-tighter font-semibold text-primary">
@@ -390,10 +390,7 @@ function SectionDiagnose() {
           {/* Visualization on the Left */}
           <div className="lg:col-span-7 lg:row-start-1 relative h-[50vh] lg:h-[60vh] w-full order-2 lg:order-1 mt-12 lg:mt-0">
             <SectionVisualReveal sectionHash="#diagnose" enterFrom="left">
-              <div className="absolute inset-0 bg-surface-2/10 border border-surface-2 shadow-2xl overflow-hidden flex items-center p-8">
-                 <AIHealthField />
-              </div>
-              <div className="absolute -bottom-4 lg:-bottom-8 -right-4 lg:-right-12 w-11/12 lg:w-[110%] h-[25vh] lg:h-[30vh] bg-background/90 backdrop-blur-md border border-surface-2 shadow-2xl flex items-center p-8 z-20">
+              <div className="absolute inset-0 bg-surface-2/10 border border-surface-2 shadow-2xl overflow-hidden flex items-center justify-center">
                  <IncidentSignal />
               </div>
             </SectionVisualReveal>
