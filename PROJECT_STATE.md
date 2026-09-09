@@ -17,6 +17,7 @@
 - [x] Phase 6 Final Animation Fix (Non-overlapping lifecycle stack)
 - [x] Phase 6 Final Typographic Experience Pass (Clamped scales, cinematic reveals)
 - [x] Phase 6 Spatial Navigator (Interactive 3D rotation, right-click control, cinematic transitions)
+- [x] Phase 6 Cinematic Section Entry Transitions (Clicking a node executes a full-screen, scroll-less, direction-aware presentation transition)
 
 ## Current Task
 Awaiting final sign-off on Phase 6 before starting Phase 7.

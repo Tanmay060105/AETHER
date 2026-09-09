@@ -9,39 +9,19 @@ function SpatialNode({
   index,
   totalNodes,
   isActive,
-  onTransitionStart,
-  onTransitionEnd,
+  onNodeClick,
 }: {
   node: SpatialNodeData;
   index: number;
   totalNodes: number;
   isActive: boolean;
-  onTransitionStart?: () => void;
-  onTransitionEnd?: () => void;
+  onNodeClick?: (hash: string) => void;
 }) {
   const [isHovered, setIsHovered] = useState(false);
-  const [isTransitioning, setIsTransitioning] = useState(false);
   const angle = (index / totalNodes) * 360;
 
   const handleClick = () => {
-    // Cinematic Node Emphasis Transition
-    setIsTransitioning(true);
-    if (onTransitionStart) onTransitionStart();
-    
-    // Short delay before routing to allow the transition emphasis to play out
-    setTimeout(() => {
-      setIsTransitioning(false);
-      if (onTransitionEnd) onTransitionEnd();
-      
-      // Force smooth scroll to the element to ensure it works even if already on that hash
-      const targetElement = document.getElementById(node.hash.replace('#', ''));
-      if (targetElement) {
-        targetElement.scrollIntoView({ behavior: 'smooth' });
-      }
-      
-      // Update URL hash without jumping (using history API) to keep URLs shareable
-      window.history.pushState(null, '', node.hash);
-    }, 400); // 400ms transition
+    if (onNodeClick) onNodeClick(node.hash);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -52,11 +32,10 @@ function SpatialNode({
   };
 
   // Visual state calculation
-  // Base scale is 1. Hover slightly increases it. Transition emphasizes it more.
-  const scale = isTransitioning ? 1.08 : (isHovered ? 1.05 : (isActive ? 1.02 : 1));
-  const brightness = isTransitioning ? "brightness-150" : (isHovered ? "brightness-125" : (isActive ? "brightness-110" : "brightness-100"));
-  const borderColor = isHovered || isActive || isTransitioning ? "border-primary/40" : "border-surface-2";
-  const zIndex = isTransitioning ? 50 : (isHovered || isActive ? 20 : 10);
+  const scale = isHovered ? 1.05 : (isActive ? 1.02 : 1);
+  const brightness = isHovered ? "brightness-125" : (isActive ? "brightness-110" : "brightness-100");
+  const borderColor = isHovered || isActive ? "border-primary/40" : "border-surface-2";
+  const zIndex = isHovered || isActive ? 20 : 10;
 
   return (
     <motion.div
@@ -74,7 +53,7 @@ function SpatialNode({
       aria-label={`Navigate to ${node.label} section`}
     >
       <AnimatePresence>
-        {(isHovered || isActive || isTransitioning) && (
+        {(isHovered || isActive) && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -98,9 +77,13 @@ function SpatialNode({
   );
 }
 
-export function SpatialNavigator() {
-  const [activeNodeId, setActiveNodeId] = useState<string | null>(null);
-  const [isAnyTransitioning, setIsAnyTransitioning] = useState(false);
+export function SpatialNavigator({
+  onNodeClick,
+}: {
+  onNodeClick?: (hash: string) => void;
+}) {
+  const [activeHash, setActiveHash] = useState<string | null>(null);
+  // We no longer track isAnyTransitioning here, transition is handled by page.tsx Context.
   const containerRef = useRef<HTMLDivElement>(null);
 
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(() => {
@@ -144,24 +127,23 @@ export function SpatialNavigator() {
         });
 
         if (closestEntry) {
-          const id = (closestEntry as IntersectionObserverEntry).target.id;
-          setActiveNodeId(id);
+          const hash = (closestEntry as IntersectionObserverEntry).target.id;
+          setActiveHash(hash);
         } else {
-          // If at the very top (hero), no active node
           if (window.scrollY < window.innerHeight * 0.5) {
-            setActiveNodeId(null);
+            setActiveHash(null);
           }
         }
       },
       {
         root: null,
         rootMargin: "0px",
-        threshold: [0, 0.1, 0.5, 0.9, 1], // More thresholds for smoother detection
+        threshold: [0, 0.1, 0.5, 0.9, 1],
       }
     );
 
     spatialNodes.forEach((node) => {
-      const el = document.getElementById(node.id);
+      const el = document.getElementById(node.hash);
       if (el) observer.observe(el);
     });
 
@@ -169,7 +151,7 @@ export function SpatialNavigator() {
   }, []);
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
-    if (e.button === 2) { // Right mouse button
+    if (e.button === 2) {
       isDragging.current = true;
       lastX.current = e.clientX;
       e.currentTarget.setPointerCapture(e.pointerId);
@@ -180,7 +162,6 @@ export function SpatialNavigator() {
     if (prefersReducedMotion || !isDragging.current) return;
     const deltaX = e.clientX - lastX.current;
     lastX.current = e.clientX;
-    // Lowered sensitivity: 1px movement = 0.3 degrees rotation
     manualRotateY.set(manualRotateY.get() + deltaX * 0.3);
   }, [prefersReducedMotion, manualRotateY]);
 
@@ -204,15 +185,13 @@ export function SpatialNavigator() {
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
       onContextMenu={handleContextMenu}
-      style={{ touchAction: "none" }} // Prevent browser interference during drag
+      style={{ touchAction: "none" }}
     >
       <motion.div
         className="relative w-full h-full flex items-center justify-center transform-style-3d"
-        animate={{ scale: isAnyTransitioning ? 1.05 : 1, opacity: isAnyTransitioning ? 0.8 : 1 }}
-        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
         style={{
           transformStyle: "preserve-3d",
-          rotateY: springManualY, // Manual secondary horizontal rotation
+          rotateY: springManualY,
         }}
       >
         <motion.div
@@ -227,13 +206,12 @@ export function SpatialNavigator() {
         >
           {spatialNodes.map((node, index) => (
             <SpatialNode
-              key={node.id}
+              key={node.hash}
               node={node}
               index={index}
               totalNodes={spatialNodes.length}
-              isActive={activeNodeId === node.id}
-              onTransitionStart={() => setIsAnyTransitioning(true)}
-              onTransitionEnd={() => setIsAnyTransitioning(false)}
+              isActive={activeHash === node.hash}
+              onNodeClick={onNodeClick}
             />
           ))}
         </motion.div>

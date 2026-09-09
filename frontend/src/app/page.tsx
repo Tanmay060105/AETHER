@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { useEffect, useState, useRef, createContext, useContext } from "react";
+import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 
 import { TraceNetwork } from "@/components/visualizations/TraceNetwork";
 import { TelemetryField } from "@/components/visualizations/TelemetryField";
@@ -10,6 +10,7 @@ import { AIHealthField } from "@/components/visualizations/AIHealthField";
 import { OptimizationPath } from "@/components/visualizations/OptimizationPath";
 import { EvaluationSignal } from "@/components/visualizations/EvaluationSignal";
 import { IncidentSignal } from "@/components/visualizations/IncidentSignal";
+import { SpatialNavigator } from "@/components/spatial/SpatialNavigator";
 
 // Reusable structural components
 const Container = ({ children, className = "" }: { children: React.ReactNode, className?: string }) => (
@@ -24,10 +25,104 @@ const Grid = ({ children, className = "" }: { children: React.ReactNode, classNa
   </div>
 );
 
-import { SpatialNavigator } from "@/components/spatial/SpatialNavigator";
+export type TransitionPhase = 'IDLE' | 'GRID_EXPANDING' | 'ENTERING' | 'SETTLED';
+export type TransitionContextType = {
+  activeHash: string | null;
+  phase: TransitionPhase;
+  startTransition: (hash: string) => void;
+};
+export const TransitionContext = createContext<TransitionContextType>({
+  activeHash: null,
+  phase: 'IDLE',
+  startTransition: () => {},
+});
+
+const GridExpansionOverlay = () => {
+  const { phase } = useContext(TransitionContext);
+  return (
+    <AnimatePresence>
+      {phase === 'GRID_EXPANDING' && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="fixed inset-0 z-[100] bg-background/50 backdrop-blur-md border border-surface-2"
+        />
+      )}
+    </AnimatePresence>
+  );
+};
+
+const SectionTextReveal = ({ children, delay = 0, direction = "right", sectionHash, className = "" }: { children: React.ReactNode, delay?: number, direction?: "left" | "right", sectionHash?: string, className?: string }) => {
+  const { activeHash, phase } = useContext(TransitionContext);
+  const xOffset = direction === "right" ? -60 : 60; // if right, it means it comes FROM the left (x=-60) and goes right (x=0)
+  const isTarget = activeHash === sectionHash && sectionHash !== undefined;
+
+  if (isTarget && (phase === 'ENTERING' || phase === 'SETTLED')) {
+    return (
+        <motion.div
+          initial={{ opacity: 0, x: xOffset }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.7, delay: 0.4 + delay, ease: [0.16, 1, 0.3, 1] }}
+          className={`h-full flex flex-col justify-center ${className}`}
+        >
+        {children}
+      </motion.div>
+    );
+  } else if (isTarget && phase === 'GRID_EXPANDING') {
+    return <div className={`h-full flex flex-col justify-center opacity-0 ${className}`}>{children}</div>;
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: xOffset }}
+      whileInView={{ opacity: 1, x: 0 }}
+      viewport={{ once: false, amount: 0.3 }}
+      transition={{ duration: 0.8, delay, ease: [0.16, 1, 0.3, 1] }}
+      className={`h-full flex flex-col justify-center ${className}`}
+    >
+      {children}
+    </motion.div>
+  );
+};
+
+const SectionVisualReveal = ({ children, delay = 0, direction = "left", sectionHash }: { children: React.ReactNode, delay?: number, direction?: "left" | "right", sectionHash?: string }) => {
+  const { activeHash, phase } = useContext(TransitionContext);
+  const xOffset = direction === "left" ? 60 : -60;
+  const isTarget = activeHash === sectionHash && sectionHash !== undefined;
+
+  if (isTarget && (phase === 'ENTERING' || phase === 'SETTLED')) {
+    return (
+        <motion.div
+          initial={{ opacity: 0, scale: 1.05, x: xOffset }}
+          animate={{ opacity: 1, scale: 1, x: 0 }}
+          transition={{ duration: 0.8, delay: delay, ease: [0.16, 1, 0.3, 1] }}
+          className="w-full h-full relative"
+        >
+        {children}
+      </motion.div>
+    );
+  } else if (isTarget && phase === 'GRID_EXPANDING') {
+    return <div className="w-full h-full relative opacity-0">{children}</div>;
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 1.05, x: xOffset }}
+      whileInView={{ opacity: 1, scale: 1, x: 0 }}
+      viewport={{ once: false, amount: 0.3 }}
+      transition={{ duration: 1.2, delay, ease: [0.16, 1, 0.3, 1] }}
+      className="w-full h-full relative"
+    >
+      {children}
+    </motion.div>
+  );
+};
 
 function HeroSection() {
   const [introDone, setIntroDone] = useState(false);
+  const { startTransition } = useContext(TransitionContext);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -110,7 +205,7 @@ function HeroSection() {
 
               {/* Background/Spatial Visualization */}
               <div className="lg:col-span-5 absolute lg:relative inset-0 lg:inset-auto h-full w-full flex items-center justify-center opacity-30 lg:opacity-100 mix-blend-screen lg:mix-blend-normal z-10">
-                <SpatialNavigator />
+                <SpatialNavigator onNodeClick={startTransition} />
               </div>
             </Grid>
           </Container>
@@ -130,20 +225,24 @@ function SectionObserve() {
       <Container className="relative z-10">
         <Grid>
           <div className="lg:col-span-5 flex flex-col justify-center z-20 order-1">
-            <span className="text-[10px] md:text-[12px] font-mono text-tertiary uppercase mb-6 tracking-widest">
-              AETHER / 01 — TELEMETRY
-            </span>
-            <div className="overflow-hidden mb-8 lg:mb-10">
-              <motion.h2 style={{ y }} className="text-[clamp(56px,7vw,120px)] leading-[0.9] tracking-tighter font-semibold text-primary">
-                SEE THE SIGNAL<br />BEHIND THE SYSTEM.
-              </motion.h2>
-            </div>
-            <p className="text-[clamp(18px,1.5vw,28px)] leading-tight text-secondary max-w-lg font-medium">
-              Capture the signals behind every model call, tool execution, token, latency shift, and system event.
-            </p>
+            <SectionTextReveal sectionHash="#observe">
+              <span className="text-[10px] md:text-[12px] font-mono text-tertiary uppercase mb-6 tracking-widest block">
+                AETHER / 01 — TELEMETRY
+              </span>
+              <div className="overflow-hidden mb-8 lg:mb-10">
+                <motion.h2 style={{ y }} className="text-[clamp(56px,7vw,120px)] leading-[0.9] tracking-tighter font-semibold text-primary">
+                  SEE THE SIGNAL<br />BEHIND THE SYSTEM.
+                </motion.h2>
+              </div>
+              <p className="text-[clamp(18px,1.5vw,28px)] leading-tight text-secondary max-w-lg font-medium">
+                Capture the signals behind every model call, tool execution, token, latency shift, and system event.
+              </p>
+            </SectionTextReveal>
           </div>
           <div className="lg:col-span-7 h-[50vh] lg:h-[70vh] w-full opacity-80 pointer-events-none order-2 lg:relative absolute inset-0 lg:inset-auto z-0 lg:z-10 mt-12 lg:mt-0 mix-blend-screen lg:mix-blend-normal">
-            <TelemetryField />
+            <SectionVisualReveal sectionHash="#observe">
+              <TelemetryField />
+            </SectionVisualReveal>
           </div>
         </Grid>
       </Container>
@@ -165,23 +264,25 @@ function SectionTrace() {
           <Container className="h-full flex items-center">
             <Grid className="w-full">
               <div className="lg:col-span-6 mix-blend-difference text-white pt-24 lg:pt-0">
-                <span className="text-[10px] md:text-[12px] font-mono text-tertiary uppercase mb-6 tracking-widest block">
-                  AETHER / 02 — DISTRIBUTED TRACING
-                </span>
-                <h2 className="text-[clamp(56px,7vw,120px)] leading-[0.9] tracking-tighter font-semibold mb-6 lg:mb-10">
-                  FOLLOW<br />EVERY DECISION.
-                </h2>
-                <p className="text-[clamp(18px,1.5vw,28px)] leading-tight opacity-90 max-w-xl font-medium mb-8">
-                  Trace an AI request from its first signal to its final response — across models, tools, retrieval, and every step between.
-                </p>
-                <div className="font-mono text-[10px] md:text-[12px] tracking-widest text-tertiary uppercase flex flex-wrap gap-2 items-center">
-                  <span>REQUEST</span> <span className="opacity-50">→</span>
-                  <span>TRACE</span> <span className="opacity-50">→</span>
-                  <span>MODEL</span> <span className="opacity-50">→</span>
-                  <span>TOOL</span> <span className="opacity-50">→</span>
-                  <span>RETRIEVAL</span> <span className="opacity-50">→</span>
-                  <span>RESPONSE</span>
-                </div>
+                <SectionTextReveal sectionHash="#trace">
+                  <span className="text-[10px] md:text-[12px] font-mono text-tertiary uppercase mb-6 tracking-widest block">
+                    AETHER / 02 — DISTRIBUTED TRACING
+                  </span>
+                  <h2 className="text-[clamp(56px,7vw,120px)] leading-[0.9] tracking-tighter font-semibold mb-6 lg:mb-10">
+                    FOLLOW<br />EVERY DECISION.
+                  </h2>
+                  <p className="text-[clamp(18px,1.5vw,28px)] leading-tight opacity-90 max-w-xl font-medium mb-8">
+                    Trace an AI request from its first signal to its final response — across models, tools, retrieval, and every step between.
+                  </p>
+                  <div className="font-mono text-[10px] md:text-[12px] tracking-widest text-tertiary uppercase flex flex-wrap gap-2 items-center">
+                    <span>REQUEST</span> <span className="opacity-50">→</span>
+                    <span>TRACE</span> <span className="opacity-50">→</span>
+                    <span>MODEL</span> <span className="opacity-50">→</span>
+                    <span>TOOL</span> <span className="opacity-50">→</span>
+                    <span>RETRIEVAL</span> <span className="opacity-50">→</span>
+                    <span>RESPONSE</span>
+                  </div>
+                </SectionTextReveal>
               </div>
             </Grid>
           </Container>
@@ -189,18 +290,20 @@ function SectionTrace() {
 
         {/* Scrolling Visualization Layer */}
         <div className="absolute inset-0 lg:left-[45vw] lg:w-[55vw] overflow-hidden z-10 lg:[mask-image:linear-gradient(to_right,transparent,black_15%)]">
-          <motion.div style={{ x }} className="flex w-[300vw] lg:w-[150vw] h-full items-center pl-[10vw] md:pl-[20vw] lg:pl-[10vw] mt-24 lg:mt-0">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="w-[85vw] lg:w-[40vw] h-[50vh] lg:h-[60vh] shrink-0 bg-surface-2/10 border border-surface-2 relative overflow-hidden flex items-center justify-center mr-8 lg:mr-16">
-                <TraceNetwork />
-                <div className="absolute bottom-6 left-6 flex flex-col gap-2 font-mono text-[10px] text-tertiary mix-blend-difference text-white z-10">
-                  <span className="text-primary font-bold">TRACE_ID: tr_7f82{i}a9c</span>
-                  <span>LATENCY: {842 + i * 112} ms</span>
-                  <span>MODEL: gpt-4-turbo</span>
+          <SectionVisualReveal delay={0.2} sectionHash="#trace">
+            <motion.div style={{ x }} className="flex w-[300vw] lg:w-[150vw] h-full items-center pl-[10vw] md:pl-[20vw] lg:pl-[10vw] mt-24 lg:mt-0">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="w-[85vw] lg:w-[40vw] h-[50vh] lg:h-[60vh] shrink-0 bg-surface-2/10 border border-surface-2 relative overflow-hidden flex items-center justify-center mr-8 lg:mr-16">
+                  <TraceNetwork />
+                  <div className="absolute bottom-6 left-6 flex flex-col gap-2 font-mono text-[10px] text-tertiary mix-blend-difference text-white z-10">
+                    <span className="text-primary font-bold">TRACE_ID: tr_7f82{i}a9c</span>
+                    <span>LATENCY: {842 + i * 112} ms</span>
+                    <span>MODEL: gpt-4-turbo</span>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </motion.div>
+              ))}
+            </motion.div>
+          </SectionVisualReveal>
         </div>
         
       </div>
@@ -218,26 +321,30 @@ function SectionEvaluate() {
       <Container>
         <Grid>
           <div className="lg:col-span-5 relative z-10 flex flex-col justify-center order-1">
-            <span className="text-[10px] md:text-[12px] font-mono text-tertiary uppercase mb-6 tracking-widest">
-              AETHER / 03 — EVALUATION
-            </span>
-            <div className="overflow-hidden mb-8 lg:mb-10">
-              <motion.h2 style={{ y }} className="text-[clamp(56px,7vw,120px)] leading-[0.9] tracking-tighter font-semibold text-primary">
-                KNOW WHEN<br />QUALITY DRIFTS.
-              </motion.h2>
-            </div>
-            <p className="text-[clamp(18px,1.5vw,28px)] leading-tight text-secondary max-w-lg font-medium mb-8">
-              Evaluate every outcome against the behavior, quality, and signals your system is expected to produce.
-            </p>
-            <div className="flex gap-6 font-mono text-[10px] md:text-[12px] tracking-widest text-tertiary uppercase">
-              <span>QUALITY</span>
-              <span>THRESHOLD</span>
-              <span>DRIFT</span>
-              <span>SCORE</span>
-            </div>
+            <SectionTextReveal sectionHash="#evaluate">
+              <span className="text-[10px] md:text-[12px] font-mono text-tertiary uppercase mb-6 tracking-widest block">
+                AETHER / 03 — EVALUATION
+              </span>
+              <div className="overflow-hidden mb-8 lg:mb-10">
+                <motion.h2 style={{ y }} className="text-[clamp(56px,7vw,120px)] leading-[0.9] tracking-tighter font-semibold text-primary">
+                  KNOW WHEN<br />QUALITY DRIFTS.
+                </motion.h2>
+              </div>
+              <p className="text-[clamp(18px,1.5vw,28px)] leading-tight text-secondary max-w-lg font-medium mb-8">
+                Evaluate every outcome against the behavior, quality, and signals your system is expected to produce.
+              </p>
+              <div className="flex gap-6 font-mono text-[10px] md:text-[12px] tracking-widest text-tertiary uppercase">
+                <span>QUALITY</span>
+                <span>THRESHOLD</span>
+                <span>DRIFT</span>
+                <span>SCORE</span>
+              </div>
+            </SectionTextReveal>
           </div>
           <div className="lg:col-span-7 h-[40vh] lg:h-[60vh] w-full bg-surface-2/10 border border-surface-2 flex items-center justify-center relative shadow-2xl overflow-hidden order-2 mt-12 lg:mt-0">
-             <EvaluationSignal />
+            <SectionVisualReveal sectionHash="#evaluate">
+              <EvaluationSignal />
+            </SectionVisualReveal>
           </div>
         </Grid>
       </Container>
@@ -255,37 +362,41 @@ function SectionDiagnose() {
       <Container>
         <Grid>
           {/* Typography on the Right */}
-          <div className="lg:col-start-7 lg:col-span-6 relative z-10 flex flex-col lg:items-end lg:text-right order-1 lg:order-2">
-            <span className="text-[10px] md:text-[12px] font-mono text-tertiary uppercase mb-6 tracking-widest">
-              AETHER / 04 — INCIDENTS
-            </span>
-            <div className="overflow-hidden mb-8 lg:mb-10">
-              <motion.h2 style={{ y }} className="text-[clamp(56px,7vw,120px)] leading-[0.9] tracking-tighter font-semibold text-primary">
-                FIND THE MOMENT<br />IT BREAKS.
-              </motion.h2>
-            </div>
-            <p className="text-[clamp(18px,1.5vw,28px)] leading-tight text-secondary max-w-lg font-medium mb-8">
-              Turn anomalies into evidence. Isolate the failure across quality, latency, cost, and reliability.
-            </p>
-            <div className="flex gap-4 font-mono text-[10px] md:text-[12px] tracking-widest text-tertiary uppercase lg:justify-end flex-wrap">
-              <span>ANOMALY</span>
-              <span className="hidden lg:inline">•</span>
-              <span>DEVIATION</span>
-              <span className="hidden lg:inline">•</span>
-              <span>IMPACT</span>
-              <span className="hidden lg:inline">•</span>
-              <span>ROOT SIGNAL</span>
-            </div>
+          <div className="lg:col-start-8 lg:col-span-5 relative z-10 flex flex-col lg:items-end lg:text-right order-1 lg:order-2">
+            <SectionTextReveal direction="left" sectionHash="#diagnose" className="lg:items-end">
+              <span className="text-[10px] md:text-[12px] font-mono text-tertiary uppercase mb-6 tracking-widest block">
+                AETHER / 04 — INCIDENTS
+              </span>
+              <div className="overflow-hidden mb-8 lg:mb-10">
+                <motion.h2 style={{ y }} className="text-[clamp(56px,7vw,120px)] leading-[0.9] tracking-tighter font-semibold text-primary">
+                  FIND THE MOMENT<br />IT BREAKS.
+                </motion.h2>
+              </div>
+              <p className="text-[clamp(18px,1.5vw,28px)] leading-tight text-secondary max-w-lg font-medium mb-8">
+                Turn anomalies into evidence. Isolate the failure across quality, latency, cost, and reliability.
+              </p>
+              <div className="flex gap-4 font-mono text-[10px] md:text-[12px] tracking-widest text-tertiary uppercase lg:justify-end flex-wrap">
+                <span>ANOMALY</span>
+                <span className="hidden lg:inline">•</span>
+                <span>DEVIATION</span>
+                <span className="hidden lg:inline">•</span>
+                <span>IMPACT</span>
+                <span className="hidden lg:inline">•</span>
+                <span>ROOT SIGNAL</span>
+              </div>
+            </SectionTextReveal>
           </div>
 
           {/* Visualization on the Left */}
-          <div className="lg:col-span-6 lg:row-start-1 relative h-[50vh] lg:h-[60vh] w-full order-2 lg:order-1 mt-12 lg:mt-0">
-            <div className="absolute inset-0 bg-surface-2/10 border border-surface-2 shadow-2xl overflow-hidden flex items-center p-8">
-               <AIHealthField />
-            </div>
-            <div className="absolute -bottom-4 lg:-bottom-8 -right-4 lg:-right-12 w-11/12 lg:w-[110%] h-[25vh] lg:h-[30vh] bg-background/90 backdrop-blur-md border border-surface-2 shadow-2xl flex items-center p-8 z-20">
-               <IncidentSignal />
-            </div>
+          <div className="lg:col-span-7 lg:row-start-1 relative h-[50vh] lg:h-[60vh] w-full order-2 lg:order-1 mt-12 lg:mt-0">
+            <SectionVisualReveal direction="right" sectionHash="#diagnose">
+              <div className="absolute inset-0 bg-surface-2/10 border border-surface-2 shadow-2xl overflow-hidden flex items-center p-8">
+                 <AIHealthField />
+              </div>
+              <div className="absolute -bottom-4 lg:-bottom-8 -right-4 lg:-right-12 w-11/12 lg:w-[110%] h-[25vh] lg:h-[30vh] bg-background/90 backdrop-blur-md border border-surface-2 shadow-2xl flex items-center p-8 z-20">
+                 <IncidentSignal />
+              </div>
+            </SectionVisualReveal>
           </div>
         </Grid>
       </Container>
@@ -303,27 +414,31 @@ function SectionOptimize() {
       <Container>
         <Grid>
           <div className="lg:col-span-6 relative z-20 order-1">
-            <span className="text-[10px] md:text-[12px] font-mono text-tertiary uppercase mb-6 tracking-widest block">
-              AETHER / 05 — EFFICIENCY
-            </span>
-            <div className="overflow-hidden mb-8 lg:mb-10">
-              <motion.h2 style={{ y }} className="text-[clamp(44px,5.5vw,100px)] leading-[0.9] tracking-tighter font-semibold text-primary">
-                FIND THE<br />BOTTLENECK.<br />CHANGE THE<br />SYSTEM.
-              </motion.h2>
-            </div>
-            <p className="text-[clamp(18px,1.5vw,28px)] leading-tight text-secondary max-w-lg font-medium mb-8">
-              Expose what slows your AI down, drives its cost, or weakens its output — then measure the improvement.
-            </p>
-            <div className="flex gap-4 font-mono text-[10px] md:text-[12px] tracking-widest text-tertiary uppercase flex-wrap">
-              <span>LATENCY</span>
-              <span>TOKENS</span>
-              <span>COST</span>
-              <span>BEFORE</span>
-              <span>AFTER</span>
-            </div>
+            <SectionTextReveal sectionHash="#optimize">
+              <span className="text-[10px] md:text-[12px] font-mono text-tertiary uppercase mb-6 tracking-widest block">
+                AETHER / 05 — EFFICIENCY
+              </span>
+              <div className="overflow-hidden mb-8 lg:mb-10">
+                <motion.h2 style={{ y }} className="text-[clamp(44px,5.5vw,100px)] leading-[0.9] tracking-tighter font-semibold text-primary">
+                  FIND THE<br />BOTTLENECK.<br />CHANGE THE<br />SYSTEM.
+                </motion.h2>
+              </div>
+              <p className="text-[clamp(18px,1.5vw,28px)] leading-tight text-secondary max-w-lg font-medium mb-8">
+                Expose what slows your AI down, drives its cost, or weakens its output — then measure the improvement.
+              </p>
+              <div className="flex gap-4 font-mono text-[10px] md:text-[12px] tracking-widest text-tertiary uppercase flex-wrap">
+                <span>LATENCY</span>
+                <span>TOKENS</span>
+                <span>COST</span>
+                <span>BEFORE</span>
+                <span>AFTER</span>
+              </div>
+            </SectionTextReveal>
           </div>
           <div className="lg:col-span-6 h-[40vh] lg:h-[60vh] w-full bg-surface-2/10 border border-surface-2 flex items-center justify-center relative shadow-2xl overflow-hidden order-2 mt-12 lg:mt-0 z-10">
-             <OptimizationPath />
+            <SectionVisualReveal sectionHash="#optimize">
+              <OptimizationPath />
+            </SectionVisualReveal>
           </div>
         </Grid>
       </Container>
@@ -393,15 +508,50 @@ function SectionImprove() {
 }
 
 export default function LandingPage() {
+  const [transitionState, setTransitionState] = useState<TransitionPhase>('IDLE');
+  const [activeHash, setActiveHash] = useState<string | null>(null);
+
+  const startTransition = (hash: string) => {
+    setActiveHash(hash);
+    setTransitionState('GRID_EXPANDING');
+    
+    // Disable scrolling
+    document.body.style.overflow = 'hidden';
+
+    // Grid Expansion lasts ~600ms
+    setTimeout(() => {
+      // Instantly jump viewport to the section while grid is full screen
+      const target = document.getElementById(hash.replace('#', ''));
+      if (target) {
+        window.scrollTo({ top: target.offsetTop, behavior: 'auto' }); // auto = instant jump
+        // Also update URL instantly
+        window.history.pushState(null, '', hash);
+      }
+      
+      // Start entering phase (graphs and text animate in)
+      setTransitionState('ENTERING');
+      
+      // After animations complete (~1.5s), settle and restore scrollability
+      setTimeout(() => {
+        setTransitionState('SETTLED');
+        document.body.style.overflow = '';
+      }, 1500);
+      
+    }, 600);
+  };
+
   return (
-    <main className="bg-background min-h-screen text-primary selection:bg-white selection:text-black">
-      <HeroSection />
-      <SectionObserve />
-      <SectionTrace />
-      <SectionEvaluate />
-      <SectionDiagnose />
-      <SectionOptimize />
-      <SectionImprove />
-    </main>
+    <TransitionContext.Provider value={{ activeHash, phase: transitionState, startTransition }}>
+      <main className="bg-background min-h-screen text-primary selection:bg-white selection:text-black">
+        <GridExpansionOverlay />
+        <HeroSection />
+        <SectionObserve />
+        <SectionTrace />
+        <SectionEvaluate />
+        <SectionDiagnose />
+        <SectionOptimize />
+        <SectionImprove />
+      </main>
+    </TransitionContext.Provider>
   );
 }
