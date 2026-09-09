@@ -49,7 +49,7 @@ function RotatingGallery() {
               key={item.id}
               className="absolute w-80 h-[400px] bg-background/50 backdrop-blur-sm flex items-center justify-center border border-surface-2 overflow-hidden shadow-2xl"
               style={{
-                transform: `rotateY(${angle}deg) translateZ(500px)`,
+                transform: `rotateY(${angle}deg) translateZ(350px)`,
               }}
             >
               {item.component}
