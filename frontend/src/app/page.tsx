@@ -24,42 +24,7 @@ const Grid = ({ children, className = "" }: { children: React.ReactNode, classNa
   </div>
 );
 
-function RotatingGallery() {
-  const items = [
-    { id: 1, component: <TraceNetwork /> },
-    { id: 2, component: <TelemetryField /> },
-    { id: 3, component: <EvaluationSignal /> },
-    { id: 4, component: <AIHealthField /> },
-    { id: 5, component: <OptimizationPath /> },
-    { id: 6, component: <IncidentSignal /> },
-  ];
-
-  return (
-    <div className="absolute inset-0 flex items-center justify-center overflow-hidden pointer-events-none perspective-[1200px] lg:block hidden">
-      <motion.div 
-        animate={{ rotateY: 360 }}
-        transition={{ duration: 80, repeat: Infinity, ease: "linear" }}
-        className="relative w-full h-full flex items-center justify-center transform-style-3d"
-        style={{ transformStyle: "preserve-3d" }}
-      >
-        {items.map((item, index) => {
-          const angle = (index / items.length) * 360;
-          return (
-            <div
-              key={item.id}
-              className="absolute w-80 h-[400px] bg-background/50 backdrop-blur-sm flex items-center justify-center border border-surface-2 overflow-hidden shadow-2xl"
-              style={{
-                transform: `rotateY(${angle}deg) translateZ(350px)`,
-              }}
-            >
-              {item.component}
-            </div>
-          );
-        })}
-      </motion.div>
-    </div>
-  );
-}
+import { SpatialNavigator } from "@/components/spatial/SpatialNavigator";
 
 function HeroSection() {
   const [introDone, setIntroDone] = useState(false);
@@ -144,8 +109,8 @@ function HeroSection() {
               </div>
 
               {/* Background/Spatial Visualization */}
-              <div className="lg:col-span-5 absolute lg:relative inset-0 lg:inset-auto h-full w-full pointer-events-none flex items-center justify-center opacity-30 lg:opacity-100 mix-blend-screen lg:mix-blend-normal z-10">
-                <RotatingGallery />
+              <div className="lg:col-span-5 absolute lg:relative inset-0 lg:inset-auto h-full w-full flex items-center justify-center opacity-30 lg:opacity-100 mix-blend-screen lg:mix-blend-normal z-10">
+                <SpatialNavigator />
               </div>
             </Grid>
           </Container>
@@ -161,7 +126,7 @@ function SectionObserve() {
   const y = useTransform(scrollYProgress, [0, 1], ["20%", "0%"]);
 
   return (
-    <section ref={ref} className="relative min-h-[100svh] flex flex-col justify-center overflow-hidden border-t border-surface-2 bg-background py-24 lg:py-0">
+    <section id="observe" ref={ref} className="relative min-h-[100svh] flex flex-col justify-center overflow-hidden border-t border-surface-2 bg-background py-24 lg:py-0">
       <Container className="relative z-10">
         <Grid>
           <div className="lg:col-span-5 flex flex-col justify-center z-20 order-1">
@@ -192,7 +157,7 @@ function SectionTrace() {
   const x = useTransform(scrollYProgress, [0, 1], ["0%", "-50%"]);
 
   return (
-    <section ref={ref} className="h-[250vh] lg:h-[300vh] relative bg-background border-t border-surface-2">
+    <section id="trace" ref={ref} className="h-[250vh] lg:h-[300vh] relative bg-background border-t border-surface-2">
       <div className="sticky top-0 h-screen flex flex-col justify-center overflow-hidden">
         
         {/* Sticky Typography Overlay */}
@@ -249,7 +214,7 @@ function SectionEvaluate() {
   const y = useTransform(scrollYProgress, [0, 1], ["20%", "0%"]);
 
   return (
-    <section ref={ref} className="relative min-h-[100svh] flex flex-col justify-center overflow-hidden border-t border-surface-2 bg-background py-24 lg:py-0">
+    <section id="evaluate" ref={ref} className="relative min-h-[100svh] flex flex-col justify-center overflow-hidden border-t border-surface-2 bg-background py-24 lg:py-0">
       <Container>
         <Grid>
           <div className="lg:col-span-5 relative z-10 flex flex-col justify-center order-1">
@@ -286,7 +251,7 @@ function SectionDiagnose() {
   const y = useTransform(scrollYProgress, [0, 1], ["20%", "0%"]);
 
   return (
-    <section ref={ref} className="relative min-h-[100svh] flex flex-col justify-center overflow-hidden border-t border-surface-2 bg-background py-24 lg:py-0">
+    <section id="diagnose" ref={ref} className="relative min-h-[100svh] flex flex-col justify-center overflow-hidden border-t border-surface-2 bg-background py-24 lg:py-0">
       <Container>
         <Grid>
           {/* Typography on the Right */}
@@ -334,7 +299,7 @@ function SectionOptimize() {
   const y = useTransform(scrollYProgress, [0, 1], ["20%", "0%"]);
 
   return (
-    <section ref={ref} className="relative min-h-[100svh] flex flex-col justify-center overflow-hidden border-t border-surface-2 bg-background py-24 lg:py-0">
+    <section id="optimize" ref={ref} className="relative min-h-[100svh] flex flex-col justify-center overflow-hidden border-t border-surface-2 bg-background py-24 lg:py-0">
       <Container>
         <Grid>
           <div className="lg:col-span-6 relative z-20 order-1">

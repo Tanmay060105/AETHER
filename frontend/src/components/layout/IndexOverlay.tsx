@@ -10,13 +10,11 @@ interface IndexOverlayProps {
 }
 
 const navLinks = [
-  { num: "01", label: "OBSERVE", href: "#" },
-  { num: "02", label: "TRACE", href: "#" },
-  { num: "03", label: "EVALUATE", href: "#" },
-  { num: "04", label: "EXPERIMENT", href: "#" },
-  { num: "05", label: "OPTIMIZE", href: "#" },
-  { num: "06", label: "INCIDENTS", href: "#" },
-  { num: "07", label: "ANALYTICS", href: "#" },
+  { num: "01", label: "OBSERVE", href: "#observe" },
+  { num: "02", label: "TRACE", href: "#trace" },
+  { num: "03", label: "EVALUATE", href: "#evaluate" },
+  { num: "04", label: "DIAGNOSE", href: "#diagnose" },
+  { num: "05", label: "OPTIMIZE", href: "#optimize" },
 ];
 
 const containerVariants = {
