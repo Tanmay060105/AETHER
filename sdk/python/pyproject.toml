@@ -1,0 +1,30 @@
+[project]
+name = "aether-sdk"
+version = "0.1.0"
+description = "AETHER Python SDK for AI Telemetry"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "httpx>=0.25.0",
+    "pydantic>=2.0.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "respx>=0.20.2",
+    "ruff>=0.1.0",
+    "pytest-benchmark>=4.0.0"
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.hatch.build.targets.wheel]
+packages = ["aether"]
