@@ -60,9 +60,9 @@ function SpatialNode({
 
   return (
     <motion.div
-      className={`absolute w-80 h-[400px] bg-background/50 backdrop-blur-sm flex items-center justify-center border ${borderColor} overflow-hidden shadow-2xl transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary ${brightness}`}
+      className={`absolute w-96 h-[480px] bg-background/50 backdrop-blur-sm flex items-center justify-center border ${borderColor} overflow-hidden shadow-2xl transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary ${brightness}`}
       style={{
-        transform: `rotateY(${angle}deg) translateZ(280px) scale(${scale})`,
+        transform: `rotateY(${angle}deg) translateZ(320px) scale(${scale})`,
         zIndex,
       }}
       onMouseEnter={() => setIsHovered(true)}
@@ -180,8 +180,8 @@ export function SpatialNavigator() {
     if (prefersReducedMotion || !isDragging.current) return;
     const deltaX = e.clientX - lastX.current;
     lastX.current = e.clientX;
-    // Increase sensitivity: 1px movement = 0.8 degrees rotation
-    manualRotateY.set(manualRotateY.get() + deltaX * 0.8);
+    // Lowered sensitivity: 1px movement = 0.3 degrees rotation
+    manualRotateY.set(manualRotateY.get() + deltaX * 0.3);
   }, [prefersReducedMotion, manualRotateY]);
 
   const handlePointerUp = useCallback((e: React.PointerEvent) => {
