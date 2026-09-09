@@ -54,9 +54,9 @@ const GridExpansionOverlay = () => {
   );
 };
 
-const SectionTextReveal = ({ children, delay = 0, direction = "right", sectionHash, className = "" }: { children: React.ReactNode, delay?: number, direction?: "left" | "right", sectionHash?: string, className?: string }) => {
+const SectionTextReveal = ({ children, delay = 0, enterFrom = "left", sectionHash, className = "" }: { children: React.ReactNode, delay?: number, enterFrom?: "left" | "right", sectionHash?: string, className?: string }) => {
   const { activeHash, phase } = useContext(TransitionContext);
-  const xOffset = direction === "right" ? -60 : 60; // if right, it means it comes FROM the left (x=-60) and goes right (x=0)
+  const xOffset = enterFrom === "left" ? -60 : 60;
   const isTarget = activeHash === sectionHash && sectionHash !== undefined;
 
   if (isTarget && (phase === 'ENTERING' || phase === 'SETTLED')) {
@@ -64,7 +64,7 @@ const SectionTextReveal = ({ children, delay = 0, direction = "right", sectionHa
         <motion.div
           initial={{ opacity: 0, x: xOffset }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.7, delay: 0.4 + delay, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.7, delay: 0.5 + delay, ease: [0.16, 1, 0.3, 1] }}
           className={`h-full flex flex-col justify-center ${className}`}
         >
         {children}
@@ -87,9 +87,9 @@ const SectionTextReveal = ({ children, delay = 0, direction = "right", sectionHa
   );
 };
 
-const SectionVisualReveal = ({ children, delay = 0, direction = "left", sectionHash }: { children: React.ReactNode, delay?: number, direction?: "left" | "right", sectionHash?: string }) => {
+const SectionVisualReveal = ({ children, delay = 0, enterFrom = "right", sectionHash }: { children: React.ReactNode, delay?: number, enterFrom?: "left" | "right", sectionHash?: string }) => {
   const { activeHash, phase } = useContext(TransitionContext);
-  const xOffset = direction === "left" ? 60 : -60;
+  const xOffset = enterFrom === "left" ? -60 : 60;
   const isTarget = activeHash === sectionHash && sectionHash !== undefined;
 
   if (isTarget && (phase === 'ENTERING' || phase === 'SETTLED')) {
@@ -97,7 +97,7 @@ const SectionVisualReveal = ({ children, delay = 0, direction = "left", sectionH
         <motion.div
           initial={{ opacity: 0, scale: 1.05, x: xOffset }}
           animate={{ opacity: 1, scale: 1, x: 0 }}
-          transition={{ duration: 0.8, delay: delay, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.8, delay: 0.2 + delay, ease: [0.16, 1, 0.3, 1] }}
           className="w-full h-full relative"
         >
         {children}
@@ -225,7 +225,7 @@ function SectionObserve() {
       <Container className="relative z-10">
         <Grid>
           <div className="lg:col-span-5 flex flex-col justify-center z-20 order-1">
-            <SectionTextReveal sectionHash="#observe">
+            <SectionTextReveal sectionHash="#observe" enterFrom="left">
               <span className="text-[10px] md:text-[12px] font-mono text-tertiary uppercase mb-6 tracking-widest block">
                 AETHER / 01 — TELEMETRY
               </span>
@@ -240,7 +240,7 @@ function SectionObserve() {
             </SectionTextReveal>
           </div>
           <div className="lg:col-span-7 h-[50vh] lg:h-[70vh] w-full opacity-80 pointer-events-none order-2 lg:relative absolute inset-0 lg:inset-auto z-0 lg:z-10 mt-12 lg:mt-0 mix-blend-screen lg:mix-blend-normal">
-            <SectionVisualReveal sectionHash="#observe">
+            <SectionVisualReveal sectionHash="#observe" enterFrom="right">
               <TelemetryField />
             </SectionVisualReveal>
           </div>
@@ -264,7 +264,7 @@ function SectionTrace() {
           <Container className="h-full flex items-center">
             <Grid className="w-full">
               <div className="lg:col-span-6 mix-blend-difference text-white pt-24 lg:pt-0">
-                <SectionTextReveal sectionHash="#trace">
+                <SectionTextReveal sectionHash="#trace" enterFrom="left">
                   <span className="text-[10px] md:text-[12px] font-mono text-tertiary uppercase mb-6 tracking-widest block">
                     AETHER / 02 — DISTRIBUTED TRACING
                   </span>
@@ -290,7 +290,7 @@ function SectionTrace() {
 
         {/* Scrolling Visualization Layer */}
         <div className="absolute inset-0 lg:left-[45vw] lg:w-[55vw] overflow-hidden z-10 lg:[mask-image:linear-gradient(to_right,transparent,black_15%)]">
-          <SectionVisualReveal delay={0.2} sectionHash="#trace">
+          <SectionVisualReveal delay={0.2} sectionHash="#trace" enterFrom="right">
             <motion.div style={{ x }} className="flex w-[300vw] lg:w-[150vw] h-full items-center pl-[10vw] md:pl-[20vw] lg:pl-[10vw] mt-24 lg:mt-0">
               {[1, 2, 3, 4].map((i) => (
                 <div key={i} className="w-[85vw] lg:w-[40vw] h-[50vh] lg:h-[60vh] shrink-0 bg-surface-2/10 border border-surface-2 relative overflow-hidden flex items-center justify-center mr-8 lg:mr-16">
@@ -321,7 +321,7 @@ function SectionEvaluate() {
       <Container>
         <Grid>
           <div className="lg:col-span-5 relative z-10 flex flex-col justify-center order-1">
-            <SectionTextReveal sectionHash="#evaluate">
+            <SectionTextReveal sectionHash="#evaluate" enterFrom="left">
               <span className="text-[10px] md:text-[12px] font-mono text-tertiary uppercase mb-6 tracking-widest block">
                 AETHER / 03 — EVALUATION
               </span>
@@ -342,7 +342,7 @@ function SectionEvaluate() {
             </SectionTextReveal>
           </div>
           <div className="lg:col-span-7 h-[40vh] lg:h-[60vh] w-full bg-surface-2/10 border border-surface-2 flex items-center justify-center relative shadow-2xl overflow-hidden order-2 mt-12 lg:mt-0">
-            <SectionVisualReveal sectionHash="#evaluate">
+            <SectionVisualReveal sectionHash="#evaluate" enterFrom="right">
               <EvaluationSignal />
             </SectionVisualReveal>
           </div>
@@ -363,7 +363,7 @@ function SectionDiagnose() {
         <Grid>
           {/* Typography on the Right */}
           <div className="lg:col-start-8 lg:col-span-5 relative z-10 flex flex-col lg:items-end lg:text-right order-1 lg:order-2">
-            <SectionTextReveal direction="left" sectionHash="#diagnose" className="lg:items-end">
+            <SectionTextReveal sectionHash="#diagnose" enterFrom="right" className="lg:items-end">
               <span className="text-[10px] md:text-[12px] font-mono text-tertiary uppercase mb-6 tracking-widest block">
                 AETHER / 04 — INCIDENTS
               </span>
@@ -389,7 +389,7 @@ function SectionDiagnose() {
 
           {/* Visualization on the Left */}
           <div className="lg:col-span-7 lg:row-start-1 relative h-[50vh] lg:h-[60vh] w-full order-2 lg:order-1 mt-12 lg:mt-0">
-            <SectionVisualReveal direction="right" sectionHash="#diagnose">
+            <SectionVisualReveal sectionHash="#diagnose" enterFrom="left">
               <div className="absolute inset-0 bg-surface-2/10 border border-surface-2 shadow-2xl overflow-hidden flex items-center p-8">
                  <AIHealthField />
               </div>
@@ -414,7 +414,7 @@ function SectionOptimize() {
       <Container>
         <Grid>
           <div className="lg:col-span-6 relative z-20 order-1">
-            <SectionTextReveal sectionHash="#optimize">
+            <SectionTextReveal sectionHash="#optimize" enterFrom="left">
               <span className="text-[10px] md:text-[12px] font-mono text-tertiary uppercase mb-6 tracking-widest block">
                 AETHER / 05 — EFFICIENCY
               </span>
@@ -436,7 +436,7 @@ function SectionOptimize() {
             </SectionTextReveal>
           </div>
           <div className="lg:col-span-6 h-[40vh] lg:h-[60vh] w-full bg-surface-2/10 border border-surface-2 flex items-center justify-center relative shadow-2xl overflow-hidden order-2 mt-12 lg:mt-0 z-10">
-            <SectionVisualReveal sectionHash="#optimize">
+            <SectionVisualReveal sectionHash="#optimize" enterFrom="right">
               <OptimizationPath />
             </SectionVisualReveal>
           </div>
@@ -528,14 +528,17 @@ export default function LandingPage() {
         window.history.pushState(null, '', hash);
       }
       
-      // Start entering phase (graphs and text animate in)
-      setTransitionState('ENTERING');
-      
-      // After animations complete (~1.5s), settle and restore scrollability
+      // Short breathing moment
       setTimeout(() => {
-        setTransitionState('SETTLED');
-        document.body.style.overflow = '';
-      }, 1500);
+        // Start entering phase (graphs and text animate in)
+        setTransitionState('ENTERING');
+        
+        // After animations complete (~1.6s total), settle and restore scrollability
+        setTimeout(() => {
+          setTransitionState('SETTLED');
+          document.body.style.overflow = '';
+        }, 1600);
+      }, 200);
       
     }, 600);
   };
