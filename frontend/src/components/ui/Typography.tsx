@@ -8,7 +8,7 @@ interface TypographyProps {
 
 export function Hero({ children, as: Component = "h1", className = "" }: TypographyProps) {
   return (
-    <Component className={`text-hero font-medium tracking-tighter text-primary ${className}`}>
+    <Component className={`text-hero font-semibold tracking-tighter text-primary ${className}`}>
       {children}
     </Component>
   );
@@ -16,7 +16,7 @@ export function Hero({ children, as: Component = "h1", className = "" }: Typogra
 
 export function SectionTitle({ children, as: Component = "h2", className = "" }: TypographyProps) {
   return (
-    <Component className={`text-section-title font-medium tracking-tight text-primary ${className}`}>
+    <Component className={`text-section-title font-semibold tracking-tight text-primary ${className}`}>
       {children}
     </Component>
   );

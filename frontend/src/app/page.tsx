@@ -2,13 +2,12 @@
 
 import { useEffect, useState, useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { Hero, Body } from "@/components/ui/Typography";
 
 import { TraceNetwork } from "@/components/visualizations/TraceNetwork";
 import { TelemetryField } from "@/components/visualizations/TelemetryField";
 import { SystemFlow } from "@/components/visualizations/SystemFlow";
 import { AIHealthField } from "@/components/visualizations/AIHealthField";
-import { CostFlow } from "@/components/visualizations/CostFlow";
+import { OptimizationPath } from "@/components/visualizations/OptimizationPath";
 import { EvaluationSignal } from "@/components/visualizations/EvaluationSignal";
 import { IncidentSignal } from "@/components/visualizations/IncidentSignal";
 
@@ -20,7 +19,7 @@ const Container = ({ children, className = "" }: { children: React.ReactNode, cl
 );
 
 const Grid = ({ children, className = "" }: { children: React.ReactNode, className?: string }) => (
-  <div className={`grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-center ${className}`}>
+  <div className={`grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center ${className}`}>
     {children}
   </div>
 );
@@ -31,12 +30,12 @@ function RotatingGallery() {
     { id: 2, component: <TelemetryField /> },
     { id: 3, component: <EvaluationSignal /> },
     { id: 4, component: <AIHealthField /> },
-    { id: 5, component: <CostFlow /> },
+    { id: 5, component: <OptimizationPath /> },
     { id: 6, component: <IncidentSignal /> },
   ];
 
   return (
-    <div className="absolute inset-0 flex items-center justify-center overflow-hidden pointer-events-none perspective-[1200px]">
+    <div className="absolute inset-0 flex items-center justify-center overflow-hidden pointer-events-none perspective-[1200px] lg:block hidden">
       <motion.div 
         animate={{ rotateY: 360 }}
         transition={{ duration: 80, repeat: Infinity, ease: "linear" }}
@@ -72,8 +71,16 @@ function HeroSection() {
     return () => clearTimeout(timer);
   }, []);
 
+  const supportingStatements = [
+    "OBSERVE EVERY SIGNAL.",
+    "TRACE EVERY DECISION.",
+    "EVALUATE EVERY OUTCOME.",
+    "DIAGNOSE EVERY FAILURE.",
+    "OPTIMIZE THE SYSTEM."
+  ];
+
   return (
-    <section className="relative w-full min-h-[100svh] flex flex-col justify-center overflow-hidden bg-background">
+    <section className="relative w-full min-h-[100svh] flex flex-col justify-center overflow-hidden bg-background pt-20 lg:pt-0">
       {!introDone ? (
         <motion.div
           key="intro-text"
@@ -83,7 +90,7 @@ function HeroSection() {
           transition={{ duration: 1.2, ease: [0.76, 0, 0.24, 1] }}
           className="absolute inset-0 flex items-center justify-center z-10"
         >
-          <Hero>AETHER</Hero>
+          <h1 className="text-[clamp(60px,7.5vw,130px)] font-semibold tracking-tighter text-primary">AETHER</h1>
         </motion.div>
       ) : (
         <motion.div
@@ -97,26 +104,47 @@ function HeroSection() {
             <Grid className="w-full h-full relative">
               
               {/* Foreground Typography */}
-              <div className="lg:col-span-5 z-20 flex flex-col justify-center h-full pt-32 lg:pt-0">
-                <motion.div
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ duration: 1, delay: 0.5, ease: [0.76, 0, 0.24, 1] }}
-                >
-                  <Hero className="mb-8 leading-[0.85] tracking-tighter text-[14vw] lg:text-[7vw]">
+              <div className="lg:col-span-7 z-30 flex flex-col justify-center h-full pt-20 pb-20 lg:py-0">
+                <div className="mb-12 overflow-hidden">
+                  <motion.h1
+                    initial={{ y: "100%", opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ duration: 1, delay: 0.2, ease: [0.76, 0, 0.24, 1] }}
+                    className="leading-[0.85] tracking-tighter text-[clamp(60px,7.5vw,130px)] font-semibold text-primary relative z-30"
+                  >
                     UNDERSTAND<br />YOUR AI<br />SYSTEM.
-                  </Hero>
-                  <h2 className="text-xl md:text-2xl font-light tracking-wide text-secondary mb-12 max-w-xl">
-                    The intelligence layer for understanding what happens inside modern AI systems.
-                  </h2>
-                  <button className="text-metadata tracking-widest text-primary hover:text-white transition-colors py-2 uppercase font-mono border-b border-primary hover:border-white w-fit">
+                  </motion.h1>
+                </div>
+
+                <div className="mb-16 flex flex-col gap-2 relative z-30">
+                  {supportingStatements.map((statement, idx) => (
+                    <div key={idx} className="overflow-hidden">
+                      <motion.div
+                        initial={{ y: 24, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ duration: 0.8, delay: 0.8 + idx * 0.15, ease: [0.16, 1, 0.3, 1] }}
+                        className="text-[clamp(18px,1.5vw,28px)] font-medium tracking-wide text-secondary uppercase"
+                      >
+                        {statement}
+                      </motion.div>
+                    </div>
+                  ))}
+                </div>
+
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 1, delay: 2 }}
+                  className="relative z-30"
+                >
+                  <button className="text-[12px] tracking-widest text-primary hover:text-white transition-colors py-2 uppercase font-mono border-b border-primary hover:border-white w-fit">
                     EXPLORE PLATFORM →
                   </button>
                 </motion.div>
               </div>
 
               {/* Background/Spatial Visualization */}
-              <div className="lg:col-span-7 absolute lg:relative inset-0 lg:inset-auto h-full w-full pointer-events-none flex items-center justify-center opacity-30 lg:opacity-100 mix-blend-screen lg:mix-blend-normal">
+              <div className="lg:col-span-5 absolute lg:relative inset-0 lg:inset-auto h-full w-full pointer-events-none flex items-center justify-center opacity-30 lg:opacity-100 mix-blend-screen lg:mix-blend-normal z-10">
                 <RotatingGallery />
               </div>
             </Grid>
@@ -130,28 +158,26 @@ function HeroSection() {
 function SectionObserve() {
   const ref = useRef(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "center center"] });
-  const y = useTransform(scrollYProgress, [0, 1], ["50%", "0%"]);
+  const y = useTransform(scrollYProgress, [0, 1], ["20%", "0%"]);
 
   return (
-    <section ref={ref} className="relative min-h-[100svh] flex flex-col justify-center overflow-hidden border-t border-surface-2 bg-background">
-      <Container className="relative z-10 h-full py-32 lg:py-0">
-        <Grid className="h-full">
-          <div className="lg:col-span-5 flex flex-col justify-center z-20 relative">
-            <div className="overflow-hidden mb-12">
-              <motion.h2 style={{ y }} className="text-[12vw] lg:text-[8vw] leading-[0.9] tracking-tighter font-medium text-primary">
-                OBSERVE.
+    <section ref={ref} className="relative min-h-[100svh] flex flex-col justify-center overflow-hidden border-t border-surface-2 bg-background py-24 lg:py-0">
+      <Container className="relative z-10">
+        <Grid>
+          <div className="lg:col-span-5 flex flex-col justify-center z-20 order-1">
+            <span className="text-[10px] md:text-[12px] font-mono text-tertiary uppercase mb-6 tracking-widest">
+              AETHER / 01 — TELEMETRY
+            </span>
+            <div className="overflow-hidden mb-8 lg:mb-10">
+              <motion.h2 style={{ y }} className="text-[clamp(56px,7vw,120px)] leading-[0.9] tracking-tighter font-semibold text-primary">
+                SEE THE SIGNAL<br />BEHIND THE SYSTEM.
               </motion.h2>
             </div>
-            <div className="flex flex-col gap-8">
-              <span className="text-metadata font-mono text-tertiary uppercase w-32 shrink-0">
-                ( TELEMETRY )
-              </span>
-              <Body className="text-2xl md:text-4xl leading-tight text-secondary max-w-lg">
-                See every signal that shapes your AI system.
-              </Body>
-            </div>
+            <p className="text-[clamp(18px,1.5vw,28px)] leading-tight text-secondary max-w-lg font-medium">
+              Capture the signals behind every model call, tool execution, token, latency shift, and system event.
+            </p>
           </div>
-          <div className="lg:col-span-7 absolute lg:relative inset-0 lg:inset-auto h-full w-full opacity-40 lg:opacity-100 pointer-events-none">
+          <div className="lg:col-span-7 h-[50vh] lg:h-[70vh] w-full opacity-80 pointer-events-none order-2 lg:relative absolute inset-0 lg:inset-auto z-0 lg:z-10 mt-12 lg:mt-0 mix-blend-screen lg:mix-blend-normal">
             <TelemetryField />
           </div>
         </Grid>
@@ -166,38 +192,51 @@ function SectionTrace() {
   const x = useTransform(scrollYProgress, [0, 1], ["0%", "-50%"]);
 
   return (
-    <section ref={ref} className="h-[300vh] relative bg-background border-t border-surface-2">
+    <section ref={ref} className="h-[250vh] lg:h-[300vh] relative bg-background border-t border-surface-2">
       <div className="sticky top-0 h-screen flex flex-col justify-center overflow-hidden">
         
         {/* Sticky Typography Overlay */}
         <div className="absolute inset-0 pointer-events-none z-20">
           <Container className="h-full flex items-center">
             <Grid className="w-full">
-              <div className="lg:col-span-4 mix-blend-difference text-white">
-                <h2 className="text-[12vw] lg:text-[8vw] leading-[0.9] tracking-tighter font-medium mb-8">
-                  TRACE.
+              <div className="lg:col-span-6 mix-blend-difference text-white pt-24 lg:pt-0">
+                <span className="text-[10px] md:text-[12px] font-mono text-tertiary uppercase mb-6 tracking-widest block">
+                  AETHER / 02 — DISTRIBUTED TRACING
+                </span>
+                <h2 className="text-[clamp(56px,7vw,120px)] leading-[0.9] tracking-tighter font-semibold mb-6 lg:mb-10">
+                  FOLLOW<br />EVERY DECISION.
                 </h2>
-                <Body className="text-2xl md:text-4xl leading-tight opacity-80 max-w-sm">
-                  Follow every request, model call, tool, and retrieval step.
-                </Body>
+                <p className="text-[clamp(18px,1.5vw,28px)] leading-tight opacity-90 max-w-xl font-medium mb-8">
+                  Trace an AI request from its first signal to its final response — across models, tools, retrieval, and every step between.
+                </p>
+                <div className="font-mono text-[10px] md:text-[12px] tracking-widest text-tertiary uppercase flex flex-wrap gap-2 items-center">
+                  <span>REQUEST</span> <span className="opacity-50">→</span>
+                  <span>TRACE</span> <span className="opacity-50">→</span>
+                  <span>MODEL</span> <span className="opacity-50">→</span>
+                  <span>TOOL</span> <span className="opacity-50">→</span>
+                  <span>RETRIEVAL</span> <span className="opacity-50">→</span>
+                  <span>RESPONSE</span>
+                </div>
               </div>
             </Grid>
           </Container>
         </div>
 
         {/* Scrolling Visualization Layer */}
-        <motion.div style={{ x }} className="flex w-[200vw] lg:w-[150vw] h-full items-center ml-[50vw] lg:ml-[33vw]">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="w-[80vw] lg:w-[40vw] h-[50vh] shrink-0 bg-surface-2/10 border border-surface-2 relative overflow-hidden flex items-center justify-center mr-8 lg:mr-16">
-              <TraceNetwork />
-              <div className="absolute bottom-8 left-8 flex flex-col gap-2 font-mono text-[10px] text-tertiary mix-blend-difference text-white">
-                <span className="text-primary">TRACE_ID: tr_7f82{i}a9c</span>
-                <span>LATENCY: {842 + i * 112} ms</span>
-                <span>MODEL: gpt-4-turbo</span>
+        <div className="absolute inset-0 lg:left-[45vw] lg:w-[55vw] overflow-hidden z-10 lg:[mask-image:linear-gradient(to_right,transparent,black_15%)]">
+          <motion.div style={{ x }} className="flex w-[300vw] lg:w-[150vw] h-full items-center pl-[10vw] md:pl-[20vw] lg:pl-[10vw] mt-24 lg:mt-0">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="w-[85vw] lg:w-[40vw] h-[50vh] lg:h-[60vh] shrink-0 bg-surface-2/10 border border-surface-2 relative overflow-hidden flex items-center justify-center mr-8 lg:mr-16">
+                <TraceNetwork />
+                <div className="absolute bottom-6 left-6 flex flex-col gap-2 font-mono text-[10px] text-tertiary mix-blend-difference text-white z-10">
+                  <span className="text-primary font-bold">TRACE_ID: tr_7f82{i}a9c</span>
+                  <span>LATENCY: {842 + i * 112} ms</span>
+                  <span>MODEL: gpt-4-turbo</span>
+                </div>
               </div>
-            </div>
-          ))}
-        </motion.div>
+            ))}
+          </motion.div>
+        </div>
         
       </div>
     </section>
@@ -207,28 +246,32 @@ function SectionTrace() {
 function SectionEvaluate() {
   const ref = useRef(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "center center"] });
-  const y = useTransform(scrollYProgress, [0, 1], ["50%", "0%"]);
+  const y = useTransform(scrollYProgress, [0, 1], ["20%", "0%"]);
 
   return (
-    <section ref={ref} className="relative min-h-[100svh] flex flex-col justify-center overflow-hidden border-t border-surface-2 bg-background">
-      <Container className="py-32 lg:py-0">
+    <section ref={ref} className="relative min-h-[100svh] flex flex-col justify-center overflow-hidden border-t border-surface-2 bg-background py-24 lg:py-0">
+      <Container>
         <Grid>
-          <div className="lg:col-span-5 relative z-10 flex flex-col justify-center">
-            <div className="overflow-hidden mb-12">
-              <motion.h2 style={{ y }} className="text-[10vw] lg:text-[7vw] leading-[0.9] tracking-tighter font-medium text-primary">
-                EVALUATE.
+          <div className="lg:col-span-5 relative z-10 flex flex-col justify-center order-1">
+            <span className="text-[10px] md:text-[12px] font-mono text-tertiary uppercase mb-6 tracking-widest">
+              AETHER / 03 — EVALUATION
+            </span>
+            <div className="overflow-hidden mb-8 lg:mb-10">
+              <motion.h2 style={{ y }} className="text-[clamp(56px,7vw,120px)] leading-[0.9] tracking-tighter font-semibold text-primary">
+                KNOW WHEN<br />QUALITY DRIFTS.
               </motion.h2>
             </div>
-            <div className="flex flex-col gap-8 w-full">
-              <span className="text-metadata font-mono text-tertiary uppercase w-32 shrink-0">
-                ( QUALITY )
-              </span>
-              <Body className="text-2xl md:text-4xl leading-tight text-secondary max-w-lg">
-                Measure what your AI system actually produces.
-              </Body>
+            <p className="text-[clamp(18px,1.5vw,28px)] leading-tight text-secondary max-w-lg font-medium mb-8">
+              Evaluate every outcome against the behavior, quality, and signals your system is expected to produce.
+            </p>
+            <div className="flex gap-6 font-mono text-[10px] md:text-[12px] tracking-widest text-tertiary uppercase">
+              <span>QUALITY</span>
+              <span>THRESHOLD</span>
+              <span>DRIFT</span>
+              <span>SCORE</span>
             </div>
           </div>
-          <div className="lg:col-span-7 h-[60vh] w-full bg-surface-2/10 border border-surface-2 flex items-center justify-center relative shadow-2xl overflow-hidden mt-16 lg:mt-0">
+          <div className="lg:col-span-7 h-[40vh] lg:h-[60vh] w-full bg-surface-2/10 border border-surface-2 flex items-center justify-center relative shadow-2xl overflow-hidden order-2 mt-12 lg:mt-0">
              <EvaluationSignal />
           </div>
         </Grid>
@@ -240,37 +283,42 @@ function SectionEvaluate() {
 function SectionDiagnose() {
   const ref = useRef(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "center center"] });
-  const y = useTransform(scrollYProgress, [0, 1], ["50%", "0%"]);
+  const y = useTransform(scrollYProgress, [0, 1], ["20%", "0%"]);
 
   return (
-    <section ref={ref} className="relative min-h-[100svh] flex flex-col justify-center overflow-hidden border-t border-surface-2 bg-background">
-      <Container className="py-32 lg:py-0">
+    <section ref={ref} className="relative min-h-[100svh] flex flex-col justify-center overflow-hidden border-t border-surface-2 bg-background py-24 lg:py-0">
+      <Container>
         <Grid>
-          {/* Typography on the Right (lg:col-start-8 lg:col-span-5) */}
-          <div className="lg:col-start-8 lg:col-span-5 relative z-10 flex flex-col lg:items-end lg:text-right order-1 lg:order-2">
-            <div className="overflow-hidden mb-12">
-              <motion.h2 style={{ y }} className="text-[10vw] lg:text-[7vw] leading-[0.9] tracking-tighter font-medium text-primary">
-                DIAGNOSE.
+          {/* Typography on the Right */}
+          <div className="lg:col-start-7 lg:col-span-6 relative z-10 flex flex-col lg:items-end lg:text-right order-1 lg:order-2">
+            <span className="text-[10px] md:text-[12px] font-mono text-tertiary uppercase mb-6 tracking-widest">
+              AETHER / 04 — INCIDENTS
+            </span>
+            <div className="overflow-hidden mb-8 lg:mb-10">
+              <motion.h2 style={{ y }} className="text-[clamp(56px,7vw,120px)] leading-[0.9] tracking-tighter font-semibold text-primary">
+                FIND THE MOMENT<br />IT BREAKS.
               </motion.h2>
             </div>
-            <div className="flex flex-col lg:items-end gap-8 w-full">
-              <span className="text-metadata font-mono text-tertiary uppercase shrink-0">
-                ( INCIDENTS )
-              </span>
-              <Body className="text-2xl md:text-4xl leading-tight text-secondary max-w-lg">
-                Understand why the system behaves the way it does.
-              </Body>
+            <p className="text-[clamp(18px,1.5vw,28px)] leading-tight text-secondary max-w-lg font-medium mb-8">
+              Turn anomalies into evidence. Isolate the failure across quality, latency, cost, and reliability.
+            </p>
+            <div className="flex gap-4 font-mono text-[10px] md:text-[12px] tracking-widest text-tertiary uppercase lg:justify-end flex-wrap">
+              <span>ANOMALY</span>
+              <span className="hidden lg:inline">•</span>
+              <span>DEVIATION</span>
+              <span className="hidden lg:inline">•</span>
+              <span>IMPACT</span>
+              <span className="hidden lg:inline">•</span>
+              <span>ROOT SIGNAL</span>
             </div>
           </div>
 
-          {/* Visualization on the Left (lg:col-span-7) */}
-          <div className="lg:col-span-7 lg:row-start-1 relative h-[60vh] w-full order-2 lg:order-1 mt-16 lg:mt-0">
-            {/* Primary Visualization */}
+          {/* Visualization on the Left */}
+          <div className="lg:col-span-6 lg:row-start-1 relative h-[50vh] lg:h-[60vh] w-full order-2 lg:order-1 mt-12 lg:mt-0">
             <div className="absolute inset-0 bg-surface-2/10 border border-surface-2 shadow-2xl overflow-hidden flex items-center p-8">
                <AIHealthField />
             </div>
-            {/* Secondary Layered Visualization */}
-            <div className="absolute bottom-8 lg:-right-8 w-11/12 lg:w-3/4 h-[30vh] bg-background/80 backdrop-blur-md border border-surface-2 shadow-2xl flex items-center p-8 z-20">
+            <div className="absolute -bottom-4 lg:-bottom-8 -right-4 lg:-right-12 w-11/12 lg:w-[110%] h-[25vh] lg:h-[30vh] bg-background/90 backdrop-blur-md border border-surface-2 shadow-2xl flex items-center p-8 z-20">
                <IncidentSignal />
             </div>
           </div>
@@ -283,29 +331,34 @@ function SectionDiagnose() {
 function SectionOptimize() {
   const ref = useRef(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "center center"] });
-  const y = useTransform(scrollYProgress, [0, 1], ["50%", "0%"]);
+  const y = useTransform(scrollYProgress, [0, 1], ["20%", "0%"]);
 
   return (
-    <section ref={ref} className="relative min-h-[100svh] flex flex-col justify-center overflow-hidden border-t border-surface-2 bg-background">
-      <Container className="py-32 lg:py-0">
+    <section ref={ref} className="relative min-h-[100svh] flex flex-col justify-center overflow-hidden border-t border-surface-2 bg-background py-24 lg:py-0">
+      <Container>
         <Grid>
-          <div className="lg:col-span-5 relative z-10">
-            <div className="overflow-hidden mb-12">
-              <motion.h2 style={{ y }} className="text-[10vw] lg:text-[7vw] leading-[0.9] tracking-tighter font-medium text-primary">
-                OPTIMIZE.
+          <div className="lg:col-span-6 relative z-20 order-1">
+            <span className="text-[10px] md:text-[12px] font-mono text-tertiary uppercase mb-6 tracking-widest block">
+              AETHER / 05 — EFFICIENCY
+            </span>
+            <div className="overflow-hidden mb-8 lg:mb-10">
+              <motion.h2 style={{ y }} className="text-[clamp(44px,5.5vw,100px)] leading-[0.9] tracking-tighter font-semibold text-primary">
+                FIND THE<br />BOTTLENECK.<br />CHANGE THE<br />SYSTEM.
               </motion.h2>
             </div>
-            <div className="flex flex-col gap-8 w-full">
-              <span className="text-metadata font-mono text-tertiary uppercase w-32 shrink-0">
-                ( COST & EFFICIENCY )
-              </span>
-              <Body className="text-2xl md:text-4xl leading-tight text-secondary max-w-lg">
-                Turn system intelligence into engineering decisions.
-              </Body>
+            <p className="text-[clamp(18px,1.5vw,28px)] leading-tight text-secondary max-w-lg font-medium mb-8">
+              Expose what slows your AI down, drives its cost, or weakens its output — then measure the improvement.
+            </p>
+            <div className="flex gap-4 font-mono text-[10px] md:text-[12px] tracking-widest text-tertiary uppercase flex-wrap">
+              <span>LATENCY</span>
+              <span>TOKENS</span>
+              <span>COST</span>
+              <span>BEFORE</span>
+              <span>AFTER</span>
             </div>
           </div>
-          <div className="lg:col-span-7 h-[60vh] w-full bg-surface-2/10 border border-surface-2 flex items-center justify-center relative shadow-2xl overflow-hidden mt-16 lg:mt-0">
-             <CostFlow />
+          <div className="lg:col-span-6 h-[40vh] lg:h-[60vh] w-full bg-surface-2/10 border border-surface-2 flex items-center justify-center relative shadow-2xl overflow-hidden order-2 mt-12 lg:mt-0 z-10">
+             <OptimizationPath />
           </div>
         </Grid>
       </Container>
@@ -314,52 +367,69 @@ function SectionOptimize() {
 }
 
 function SectionImprove() {
+  const words = ["OBSERVE.", "TRACE.", "EVALUATE.", "DIAGNOSE.", "OPTIMIZE."];
+  
   return (
-    <section className="relative min-h-[100svh] flex flex-col items-center justify-center py-32 overflow-hidden border-t border-surface-2 text-center bg-surface">
-      {/* Background Visualization - Full Bleed but properly scaled so nodes don't collide with text core */}
-      <div className="absolute inset-0 opacity-40 pointer-events-none flex items-center justify-center overflow-hidden mix-blend-screen">
-        <div className="w-[150%] h-[150%] lg:w-[120%] lg:h-[120%]">
-          <SystemFlow />
-        </div>
-      </div>
-      
-      <div className="z-10 flex flex-col items-center max-w-7xl px-6 w-full mix-blend-difference text-white">
-        <span className="text-metadata font-mono text-tertiary uppercase tracking-widest mb-16">
-          ( AETHER INTELLIGENCE )
-        </span>
-        <div className="flex flex-col items-center">
-          {["OBSERVE.", "TRACE.", "EVALUATE.", "DIAGNOSE.", "OPTIMIZE."].map((word, i) => (
-            <motion.div
-              key={word}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.15, duration: 0.8, ease: "easeOut" }}
-            >
-              <Hero className="text-[12vw] lg:text-[8vw] tracking-tighter leading-[0.85] font-medium">
-                {word}
-              </Hero>
-            </motion.div>
-          ))}
-        </div>
-        
-        <div className="flex flex-col items-center gap-8 mt-24">
-          <button className="text-metadata tracking-widest text-background hover:text-white transition-colors py-4 px-8 uppercase font-mono border hover:border-surface-2 bg-white hover:bg-transparent rounded-full mix-blend-normal pointer-events-auto">
-            ENTER AETHER →
-          </button>
-          <span className="font-mono text-[10px] text-tertiary tracking-widest uppercase">
-            THE INTELLIGENCE LAYER FOR AI SYSTEMS.
-          </span>
-        </div>
-      </div>
+    <section className="relative min-h-[100svh] flex flex-col items-center justify-center py-20 lg:py-24 overflow-hidden border-t border-surface-2 bg-background">
+      <Container className="relative z-10 flex-1 flex flex-col justify-center py-12 lg:py-0 w-full">
+        <Grid className="w-full h-full items-center">
+          
+          {/* Typography side */}
+          <div className="lg:col-span-6 flex flex-col justify-center items-start text-left order-1">
+            {/* TOP: Contextual Label */}
+            <div className="mb-10 lg:mb-12 flex-shrink-0 flex flex-col items-start gap-2">
+              <h3 className="text-[clamp(18px,1.5vw,28px)] font-semibold tracking-widest text-primary">AETHER</h3>
+              <span className="text-[10px] md:text-[12px] font-mono text-tertiary uppercase tracking-widest">
+                SYSTEM INTELLIGENCE
+              </span>
+            </div>
+
+            {/* CENTER: Large Lifecycle Typography */}
+            <div className="flex flex-col items-start justify-center text-primary py-4 lg:py-8">
+              {words.map((word, i) => (
+                <div key={word} className="overflow-hidden py-1">
+                  <motion.div
+                    initial={{ opacity: 0, y: 24 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-10%" }}
+                    transition={{ delay: i * 0.15, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                    className="flex w-full"
+                  >
+                    <h2 className="text-[clamp(44px,5.5vw,90px)] tracking-tighter leading-[0.95] font-semibold">
+                      {word}
+                    </h2>
+                  </motion.div>
+                </div>
+              ))}
+            </div>
+            
+            {/* LOWER & BOTTOM: CTA and System Statement */}
+            <div className="mt-10 lg:mt-12 flex flex-col items-start gap-8 lg:gap-10 flex-shrink-0">
+              <h3 className="text-[clamp(16px,1.2vw,24px)] font-medium text-secondary max-w-xl text-left leading-tight uppercase tracking-wide">
+                TURN AI BEHAVIOR INTO<br />ENGINEERING INTELLIGENCE.
+              </h3>
+              <button className="text-[12px] tracking-widest text-background hover:text-white transition-colors py-4 px-10 uppercase font-mono border hover:border-surface-2 bg-white hover:bg-transparent rounded-full pointer-events-auto shadow-2xl">
+                ENTER AETHER →
+              </button>
+            </div>
+          </div>
+
+          {/* Graph side */}
+          <div className="lg:col-span-6 h-[50vh] lg:h-[70vh] w-full bg-surface-2/10 border border-surface-2 relative flex items-center justify-center mt-12 lg:mt-0 order-2 overflow-hidden shadow-2xl">
+            <div className="w-[150%] h-[150%] lg:w-[120%] lg:h-[120%] opacity-60">
+              <SystemFlow />
+            </div>
+          </div>
+
+        </Grid>
+      </Container>
     </section>
   );
 }
 
-
-export default function Home() {
+export default function LandingPage() {
   return (
-    <main className="w-full bg-background min-h-screen selection:bg-primary selection:text-background">
+    <main className="bg-background min-h-screen text-primary selection:bg-white selection:text-black">
       <HeroSection />
       <SectionObserve />
       <SectionTrace />

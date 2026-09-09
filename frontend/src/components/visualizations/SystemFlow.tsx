@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { TechnicalGrid } from "./TechnicalGrid";
 
 export function SystemFlow() {
   const nodes = [
@@ -13,23 +14,24 @@ export function SystemFlow() {
   ];
 
   return (
-    <div className="relative w-full h-full flex items-center justify-center p-8 bg-background">
-      <div className="relative w-[300px] h-[400px]">
+    <div className="relative w-full h-full flex items-center justify-center p-8 bg-background overflow-hidden">
+      <TechnicalGrid />
+      <div className="relative w-[300px] h-[400px] z-10">
         {/* Connecting Line */}
         <svg className="absolute inset-0 w-full h-full" style={{ pointerEvents: "none" }}>
           <path 
             d="M 50 20 L 100 80 L 150 140 L 200 200 L 150 260 L 100 320" 
             fill="none" 
             stroke="currentColor" 
-            strokeWidth="1" 
-            className="text-surface-2" 
+            strokeWidth="1.5" 
+            className="text-surface-2 opacity-50" 
           />
           <motion.path 
             d="M 50 20 L 100 80 L 150 140 L 200 200 L 150 260 L 100 320" 
             fill="none" 
             stroke="currentColor" 
-            strokeWidth="2" 
-            className="text-secondary"
+            strokeWidth="2.5" 
+            className="text-white opacity-80"
             initial={{ pathLength: 0 }}
             animate={{ pathLength: 1 }}
             transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
@@ -50,8 +52,8 @@ export function SystemFlow() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: i * 0.2, duration: 0.8 }}
           >
-            <div className="w-2 h-2 bg-secondary" />
-            <span className="font-mono text-metadata tracking-widest text-primary">{node.label}</span>
+            <div className="w-2.5 h-2.5 bg-white border border-primary/50 shadow-[0_0_10px_rgba(255,255,255,0.5)]" />
+            <span className="font-mono text-[11px] tracking-widest text-primary font-semibold">{node.label}</span>
           </motion.div>
         ))}
       </div>
