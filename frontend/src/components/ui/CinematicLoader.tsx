@@ -54,7 +54,7 @@ export function CinematicLoader() {
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               transition={{ duration: 0.8, ease: [0.76, 0, 0.24, 1] }}
-              className="text-[15vw] leading-none font-medium tracking-tighter text-primary"
+              className="text-[clamp(40px,9vw,200px)] leading-none font-medium tracking-tighter text-primary"
             >
               {Math.min(percentage, 100)}%
             </motion.div>
@@ -63,7 +63,7 @@ export function CinematicLoader() {
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               transition={{ duration: 0.8, ease: [0.76, 0, 0.24, 1], delay: 0.1 }}
-              className="text-[15vw] leading-none font-medium tracking-tighter text-secondary"
+              className="text-[clamp(40px,9vw,200px)] leading-none font-medium tracking-tighter text-secondary"
             >
               LOADING
             </motion.div>
