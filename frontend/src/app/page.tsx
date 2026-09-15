@@ -6,10 +6,9 @@ import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion"
 import { TraceNetwork } from "@/components/visualizations/TraceNetwork";
 import { TelemetryField } from "@/components/visualizations/TelemetryField";
 import { SystemFlow } from "@/components/visualizations/SystemFlow";
-import { AIHealthField } from "@/components/visualizations/AIHealthField";
-import { OptimizationPath } from "@/components/visualizations/OptimizationPath";
 import { EvaluationSignal } from "@/components/visualizations/EvaluationSignal";
 import { IncidentSignal } from "@/components/visualizations/IncidentSignal";
+import { OptimizationPath } from "@/components/visualizations/OptimizationPath";
 import { SpatialNavigator } from "@/components/spatial/SpatialNavigator";
 
 // Reusable structural components
@@ -125,10 +124,21 @@ function HeroSection() {
   const { startTransition } = useContext(TransitionContext);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const handleComplete = () => {
       setIntroDone(true);
-    }, 2500); 
-    return () => clearTimeout(timer);
+    };
+    
+    window.addEventListener("aether-loader-complete", handleComplete);
+    
+    // Safety fallback in case loader is bypassed
+    const fallbackTimer = setTimeout(() => {
+      setIntroDone(true);
+    }, 4500);
+
+    return () => {
+      window.removeEventListener("aether-loader-complete", handleComplete);
+      clearTimeout(fallbackTimer);
+    };
   }, []);
 
   const supportingStatements = [
@@ -141,18 +151,8 @@ function HeroSection() {
 
   return (
     <section className="relative w-full min-h-[100svh] flex flex-col justify-center overflow-hidden bg-background pt-20 lg:pt-0">
-      {!introDone ? (
-        <motion.div
-          key="intro-text"
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 1.05, filter: "blur(10px)" }}
-          transition={{ duration: 1.2, ease: [0.76, 0, 0.24, 1] }}
-          className="absolute inset-0 flex items-center justify-center z-10"
-        >
-          <h1 className="text-[clamp(60px,7.5vw,130px)] font-semibold tracking-tighter text-primary">AETHER</h1>
-        </motion.div>
-      ) : (
+      <AnimatePresence>
+        {introDone && (
         <motion.div
           key="main-hero"
           initial={{ opacity: 0 }}
@@ -210,7 +210,8 @@ function HeroSection() {
             </Grid>
           </Container>
         </motion.div>
-      )}
+        )}
+      </AnimatePresence>
     </section>
   );
 }
