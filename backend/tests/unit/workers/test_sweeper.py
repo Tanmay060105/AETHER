@@ -6,11 +6,12 @@ from sqlalchemy.exc import OperationalError
 from app.workers.sweeper import _sweep_unprocessed_telemetry_async
 
 @pytest.mark.asyncio
-@patch("app.workers.sweeper.AsyncSessionLocal")
+@patch("app.workers.sweeper.async_sessionmaker")
+@patch("app.workers.sweeper.create_async_engine")
 @patch("app.workers.sweeper.celery_app.send_task")
-async def test_sweep_unprocessed_telemetry_async_success(mock_send_task, mock_session):
+async def test_sweep_unprocessed_telemetry_async_success(mock_send_task, mock_create_engine, mock_sessionmaker):
     mock_db = AsyncMock()
-    mock_session.return_value.__aenter__.return_value = mock_db
+    mock_sessionmaker.return_value.return_value.__aenter__.return_value = mock_db
     
     mock_result = MagicMock()
     mock_result.scalars.return_value.all.return_value = ["trace-1", "trace-2"]
@@ -24,11 +25,12 @@ async def test_sweep_unprocessed_telemetry_async_success(mock_send_task, mock_se
     mock_send_task.assert_any_call("calculate_cost", args=["trace-2"])
 
 @pytest.mark.asyncio
-@patch("app.workers.sweeper.AsyncSessionLocal")
+@patch("app.workers.sweeper.async_sessionmaker")
+@patch("app.workers.sweeper.create_async_engine")
 @patch("app.workers.sweeper.celery_app.send_task")
-async def test_sweep_unprocessed_telemetry_async_no_data(mock_send_task, mock_session):
+async def test_sweep_unprocessed_telemetry_async_no_data(mock_send_task, mock_create_engine, mock_sessionmaker):
     mock_db = AsyncMock()
-    mock_session.return_value.__aenter__.return_value = mock_db
+    mock_sessionmaker.return_value.return_value.__aenter__.return_value = mock_db
     
     mock_result = MagicMock()
     mock_result.scalars.return_value.all.return_value = []
@@ -40,10 +42,11 @@ async def test_sweep_unprocessed_telemetry_async_no_data(mock_send_task, mock_se
     assert mock_send_task.call_count == 0
 
 @pytest.mark.asyncio
-@patch("app.workers.sweeper.AsyncSessionLocal")
-async def test_sweep_unprocessed_telemetry_async_operational_error(mock_session):
+@patch("app.workers.sweeper.async_sessionmaker")
+@patch("app.workers.sweeper.create_async_engine")
+async def test_sweep_unprocessed_telemetry_async_operational_error(mock_create_engine, mock_sessionmaker):
     mock_db = AsyncMock()
-    mock_session.return_value.__aenter__.return_value = mock_db
+    mock_sessionmaker.return_value.return_value.__aenter__.return_value = mock_db
     
     mock_db.execute.side_effect = OperationalError("statement", "params", "orig")
     

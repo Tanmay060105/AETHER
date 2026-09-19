@@ -11,7 +11,18 @@ from app.shared.models.telemetry import Trace
 
 logger = logging.getLogger(__name__)
 
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.pool import NullPool
+from app.core.config import settings
+
 async def _sweep_unprocessed_telemetry_async():
+    db_url = str(settings.DATABASE_URL)
+    if db_url.startswith("postgresql://"):
+        db_url = db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+        
+    engine = create_async_engine(db_url, poolclass=NullPool, echo=False)
+    AsyncSessionLocal = async_sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
+    
     async with AsyncSessionLocal() as db:
         try:
             # We want to find traces that:

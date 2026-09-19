@@ -25,6 +25,7 @@ class APIKey(BaseModel):
     __tablename__ = "api_keys"
 
     project_id = Column(ForeignKey("projects.id", ondelete="CASCADE"), nullable=False, index=True)
+    prefix = Column(String, nullable=False, index=True)
     key_hash = Column(String, nullable=False, unique=True)
     name = Column(String, nullable=False)
     status = Column(String, default="active")

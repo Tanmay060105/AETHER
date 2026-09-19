@@ -14,7 +14,18 @@ logger = logging.getLogger(__name__)
 
 from sqlalchemy.exc import OperationalError, IntegrityError, DataError
 
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.pool import NullPool
+from app.core.config import settings
+
 async def _process_telemetry_batch_async(project_id: str, batch_dict: Dict[str, Any], ingestion_id: str):
+    db_url = str(settings.DATABASE_URL)
+    if db_url.startswith("postgresql://"):
+        db_url = db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+        
+    engine = create_async_engine(db_url, poolclass=NullPool, echo=False)
+    AsyncSessionLocal = async_sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
+    
     async with AsyncSessionLocal() as db:
         try:
             dispatched_traces = set()
@@ -28,6 +39,7 @@ async def _process_telemetry_batch_async(project_id: str, batch_dict: Dict[str, 
                 trace_values = {
                     "id": trace_data["id"],
                     "project_id": project_id,
+                    "environment": trace_data.get("environment", "production"),
                     "status": trace_data.get("status", "success"),
                     "model": trace_data.get("model"),
                     "start_time": start_time,
@@ -42,6 +54,7 @@ async def _process_telemetry_batch_async(project_id: str, batch_dict: Dict[str, 
                     index_elements=["id"],
                     set_={
                         "project_id": stmt.excluded.project_id,
+                        "environment": stmt.excluded.environment,
                         "status": stmt.excluded.status,
                         "model": stmt.excluded.model,
                         "start_time": stmt.excluded.start_time,

@@ -1,4 +1,4 @@
-from sqlalchemy import JSON, Column, DateTime, Float, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy import JSON, Column, DateTime, Float, ForeignKey, Integer, String, UniqueConstraint, Index
 from sqlalchemy.orm import relationship
 
 from app.shared.models.base import BaseModel
@@ -9,6 +9,7 @@ class Trace(BaseModel):
 
     project_id = Column(ForeignKey("projects.id", ondelete="CASCADE"), nullable=False, index=True)
     session_id = Column(String, index=True)
+    environment = Column(String, default="production", server_default="production", nullable=False, index=True)
     status = Column(String, default="success", index=True)
     model = Column(String, index=True)
     start_time = Column(DateTime(timezone=True), nullable=False)
@@ -18,6 +19,10 @@ class Trace(BaseModel):
     cost = Column(Float, nullable=True)
     cost_calculated = Column(Integer, default=0) # 0=False, 1=True
     error_message = Column(String)
+
+    __table_args__ = (
+        Index("ix_traces_project_environment_time", "project_id", "environment", "start_time"),
+    )
 
     project = relationship("Project", back_populates="traces")
     spans = relationship("Span", back_populates="trace", cascade="all, delete-orphan")

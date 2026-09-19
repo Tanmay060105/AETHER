@@ -522,7 +522,7 @@ export default function LandingPage() {
       const target = document.getElementById(hash.replace('#', ''));
       if (target) {
         window.scrollTo({ top: target.offsetTop, behavior: 'auto' }); // auto = instant jump
-        // Also update URL instantly
+        // Also update URL instantly using native history to prevent Next.js routing exceptions
         window.history.pushState(null, '', hash);
       }
       
@@ -535,6 +535,15 @@ export default function LandingPage() {
         setTimeout(() => {
           setTransitionState('SETTLED');
           document.body.style.overflow = '';
+          
+          if (hash === '#observe') {
+            setTimeout(() => {
+              // Use window.location.href to guarantee navigation, circumventing any Next.js 
+              // App Router aborted transitions due to the heavy Framer Motion unmounts.
+              // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+              window.location.href = '/projects';
+            }, 1000); // Allow brief reading time before redirect
+          }
         }, 1600);
       }, 200);
       

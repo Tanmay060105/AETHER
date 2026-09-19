@@ -91,7 +91,9 @@ def track_llm_call(model: str, input_data: Any, output_data: Any, input_tokens: 
                 span.input_data = input_data
                 span.output_data = output_data
                 span.tokens = input_tokens + output_tokens
-                span.model = model
+                current_trace = trace._current_trace.get()
+                if current_trace:
+                    current_trace.model = model
     except Exception as e:
         logger.error(f"Error tracking LLM call: {e}")
 

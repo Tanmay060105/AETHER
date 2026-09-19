@@ -20,7 +20,7 @@ async def create_api_key(db: AsyncSession, project_id: str, api_key_in: APIKeyCr
         project_id=project_id,
         name=api_key_in.name,
         prefix=prefix,
-        hashed_key=hashed_key,
+        key_hash=hashed_key,
         created_at=datetime.now(UTC),
         updated_at=datetime.now(UTC)
     )
@@ -44,7 +44,9 @@ async def verify_api_key(db: AsyncSession, raw_key: str) -> str | None:
     
     from app.core.security import verify_password
     for api_key in api_keys:
-        if verify_password(raw_key, api_key.hashed_key):
+        if api_key.status != "active":
+            continue
+        if verify_password(raw_key, api_key.key_hash):
             return api_key.project_id
             
     return None

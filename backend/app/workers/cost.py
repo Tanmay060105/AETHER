@@ -7,7 +7,9 @@ from sqlalchemy import select, update, func
 from sqlalchemy.exc import OperationalError, IntegrityError, DataError
 
 from app.core.celery_app import celery_app
-from app.core.database import AsyncSessionLocal
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.pool import NullPool
+from app.core.config import settings
 from app.shared.models.telemetry import Trace, Span
 from app.workers.aggregation import aggregate_metrics
 
@@ -46,6 +48,13 @@ def _calculate_span_cost(model: Optional[str], input_data: Optional[Dict], outpu
     return cost
 
 async def _calculate_cost_async(trace_id: str):
+    db_url = str(settings.DATABASE_URL)
+    if db_url.startswith("postgresql://"):
+        db_url = db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+        
+    engine = create_async_engine(db_url, poolclass=NullPool, echo=False)
+    AsyncSessionLocal = async_sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
+    
     async with AsyncSessionLocal() as db:
         try:
             # 1. Fetch all LLM spans for this trace
@@ -54,9 +63,13 @@ async def _calculate_cost_async(trace_id: str):
             spans = result.scalars().all()
             
             trace_cost = 0.0
+            trace_tokens = 0
             has_unknown_costs = False
             
             for span in spans:
+                if span.tokens:
+                    trace_tokens += span.tokens
+
                 if span.span_type and span.span_type.lower() == "llm":
                     cost = _calculate_span_cost(
                         model=span.name, # Usually model is stored in name or a separate field. We'll use name or extract it.
@@ -93,6 +106,8 @@ async def _calculate_cost_async(trace_id: str):
                     trace.cost_calculated = 1
                 else:
                     trace.cost = None if has_unknown_costs else trace_cost
+                    if trace_tokens > 0:
+                        trace.total_tokens = trace_tokens
                     trace.cost_calculated = 1
                     
                 project_id = trace.project_id

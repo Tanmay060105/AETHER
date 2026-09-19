@@ -8,8 +8,9 @@ from app.workers.telemetry import _process_telemetry_batch_async
 def mock_db_session(mocker):
     mock_session = AsyncMock()
     # Mock the context manager __aenter__ and __aexit__
-    mock_session_maker = mocker.patch("app.workers.telemetry.AsyncSessionLocal")
-    mock_session_maker.return_value.__aenter__.return_value = mock_session
+    mocker.patch("app.workers.telemetry.create_async_engine")
+    mock_session_maker = mocker.patch("app.workers.telemetry.async_sessionmaker")
+    mock_session_maker.return_value.return_value.__aenter__.return_value = mock_session
     return mock_session
 
 @pytest.mark.asyncio

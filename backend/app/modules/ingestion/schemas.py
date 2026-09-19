@@ -21,6 +21,7 @@ class IngestTraceData(BaseModel):
     project_id: str = Field(..., max_length=36)
     status: str = Field(default="success", max_length=50)
     model: Optional[str] = Field(None, max_length=255)
+    environment: str = Field(default="production", max_length=50)
     start_time: str
     end_time: Optional[str] = None
     error_message: Optional[str] = Field(None, max_length=2000)

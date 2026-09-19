@@ -1,14 +1,27 @@
-from pydantic import BaseModel, EmailStr, ConfigDict
+from pydantic import BaseModel, EmailStr, ConfigDict, model_validator
 from typing import Optional
 
 
-class UserCreate(BaseModel):
+from uuid import UUID
+
+class RegisterRequest(BaseModel):
+    name: str
     email: EmailStr
     password: str
-    name: str
+    confirm_password: str
+    organization_name: str
+    project_name: str
+
+    @model_validator(mode='after')
+    def verify_passwords_match(self) -> 'RegisterRequest':
+        if self.password != self.confirm_password:
+            raise ValueError('Passwords do not match')
+        if len(self.password) < 8:
+            raise ValueError('Password must be at least 8 characters long')
+        return self
 
 class UserResponse(BaseModel):
-    id: str
+    id: UUID
     email: EmailStr
     name: str
     status: str

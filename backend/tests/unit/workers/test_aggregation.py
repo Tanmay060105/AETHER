@@ -6,10 +6,11 @@ from sqlalchemy.exc import IntegrityError, OperationalError
 from app.workers.aggregation import _aggregate_metrics_async
 
 @pytest.mark.asyncio
-@patch("app.workers.aggregation.AsyncSessionLocal")
-async def test_aggregate_metrics_async_success(mock_session):
+@patch("app.workers.aggregation.async_sessionmaker")
+@patch("app.workers.aggregation.create_async_engine")
+async def test_aggregate_metrics_async_success(mock_create_engine, mock_sessionmaker):
     mock_db = AsyncMock()
-    mock_session.return_value.__aenter__.return_value = mock_db
+    mock_sessionmaker.return_value.return_value.__aenter__.return_value = mock_db
     
     mock_row = MagicMock()
     mock_row.total_requests = 10
@@ -28,10 +29,11 @@ async def test_aggregate_metrics_async_success(mock_session):
     mock_db.commit.assert_called_once()
 
 @pytest.mark.asyncio
-@patch("app.workers.aggregation.AsyncSessionLocal")
-async def test_aggregate_metrics_async_no_data(mock_session):
+@patch("app.workers.aggregation.async_sessionmaker")
+@patch("app.workers.aggregation.create_async_engine")
+async def test_aggregate_metrics_async_no_data(mock_create_engine, mock_sessionmaker):
     mock_db = AsyncMock()
-    mock_session.return_value.__aenter__.return_value = mock_db
+    mock_sessionmaker.return_value.return_value.__aenter__.return_value = mock_db
     
     mock_row = MagicMock()
     mock_row.total_requests = 0
@@ -50,10 +52,11 @@ async def test_aggregate_metrics_async_no_data(mock_session):
     mock_db.commit.assert_not_called()
 
 @pytest.mark.asyncio
-@patch("app.workers.aggregation.AsyncSessionLocal")
-async def test_aggregate_metrics_async_operational_error(mock_session):
+@patch("app.workers.aggregation.async_sessionmaker")
+@patch("app.workers.aggregation.create_async_engine")
+async def test_aggregate_metrics_async_operational_error(mock_create_engine, mock_sessionmaker):
     mock_db = AsyncMock()
-    mock_session.return_value.__aenter__.return_value = mock_db
+    mock_sessionmaker.return_value.return_value.__aenter__.return_value = mock_db
     
     mock_db.execute.side_effect = OperationalError("statement", "params", "orig")
     

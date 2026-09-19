@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     DATABASE_URL: PostgresDsn
     REDIS_URL: str = "redis://localhost:6379/0"
     JWT_SECRET: str = "your_super_secret_jwt_key_here"
-    BACKEND_CORS_ORIGINS: list[str] = ["*"]
+    BACKEND_CORS_ORIGINS: list[str] = ["http://localhost:3000"]
 
     model_config = SettingsConfigDict(env_file="../.env", env_file_encoding="utf-8", extra="ignore")
 

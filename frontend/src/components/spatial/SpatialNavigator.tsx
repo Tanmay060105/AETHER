@@ -41,7 +41,7 @@ function SpatialNode({
     <motion.div
       className={`absolute w-96 h-[480px] bg-background/50 backdrop-blur-sm flex items-center justify-center border ${borderColor} overflow-hidden shadow-2xl transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary ${brightness}`}
       style={{
-        transform: `rotateY(${angle}deg) translateZ(320px) scale(${scale})`,
+        transform: `rotateY(${angle}deg) translateZ(300px) scale(${scale})`,
         zIndex,
       }}
       onMouseEnter={() => setIsHovered(true)}
@@ -143,7 +143,7 @@ export function SpatialNavigator({
     );
 
     spatialNodes.forEach((node) => {
-      const el = document.getElementById(node.hash);
+      const el = document.getElementById(node.hash.replace('#', ''));
       if (el) observer.observe(el);
     });
 

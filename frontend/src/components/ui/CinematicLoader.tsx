@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 
 export type LoaderPhase = "black" | "initializing" | "ready" | "converge" | "reveal" | "transition" | "done";
 
 export function CinematicLoader() {
-  const [phase, setPhase] = useState<LoaderPhase>("black");
+  const currentPath = usePathname();
+  const [phase, setPhase] = useState<LoaderPhase>(currentPath === "/" ? "black" : "done");
   const [percentage, setPercentage] = useState(0);
 
   const prefersReducedMotion = typeof window !== "undefined" 
@@ -14,6 +16,10 @@ export function CinematicLoader() {
     : false;
 
   useEffect(() => {
+    if (currentPath !== "/") {
+      return;
+    }
+
     if (prefersReducedMotion) {
       // Reduced motion choreography:
       // Black (0.15s) -> AETHER (1.0s) -> Done
@@ -77,7 +83,7 @@ export function CinematicLoader() {
       clearTimeout(t5);
       clearTimeout(t6);
     };
-  }, [prefersReducedMotion]);
+  }, [prefersReducedMotion, currentPath]);
 
   // Percentage interpolation
   useEffect(() => {

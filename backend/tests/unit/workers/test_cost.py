@@ -22,11 +22,12 @@ def test_calculate_span_cost_negative_tokens():
     assert cost is None
 
 @pytest.mark.asyncio
-@patch("app.workers.cost.AsyncSessionLocal")
+@patch("app.workers.cost.async_sessionmaker")
+@patch("app.workers.cost.create_async_engine")
 @patch("app.workers.cost.aggregate_metrics.delay")
-async def test_calculate_cost_async_success(mock_delay, mock_session):
+async def test_calculate_cost_async_success(mock_delay, mock_create_engine, mock_sessionmaker):
     mock_db = AsyncMock()
-    mock_session.return_value.__aenter__.return_value = mock_db
+    mock_sessionmaker.return_value.return_value.__aenter__.return_value = mock_db
     
     # Mock traces and spans
     mock_trace = MagicMock()
@@ -62,10 +63,11 @@ async def test_calculate_cost_async_success(mock_delay, mock_session):
     mock_delay.assert_called_once_with("proj-1", "2023-01-01T12:00:00")
 
 @pytest.mark.asyncio
-@patch("app.workers.cost.AsyncSessionLocal")
-async def test_calculate_cost_async_operational_error(mock_session):
+@patch("app.workers.cost.async_sessionmaker")
+@patch("app.workers.cost.create_async_engine")
+async def test_calculate_cost_async_operational_error(mock_create_engine, mock_sessionmaker):
     mock_db = AsyncMock()
-    mock_session.return_value.__aenter__.return_value = mock_db
+    mock_sessionmaker.return_value.return_value.__aenter__.return_value = mock_db
     
     mock_db.execute.side_effect = OperationalError("statement", "params", "orig")
     
@@ -75,10 +77,11 @@ async def test_calculate_cost_async_operational_error(mock_session):
     mock_db.rollback.assert_called_once()
 
 @pytest.mark.asyncio
-@patch("app.workers.cost.AsyncSessionLocal")
-async def test_calculate_cost_async_integrity_error(mock_session):
+@patch("app.workers.cost.async_sessionmaker")
+@patch("app.workers.cost.create_async_engine")
+async def test_calculate_cost_async_integrity_error(mock_create_engine, mock_sessionmaker):
     mock_db = AsyncMock()
-    mock_session.return_value.__aenter__.return_value = mock_db
+    mock_sessionmaker.return_value.return_value.__aenter__.return_value = mock_db
     
     mock_db.execute.side_effect = IntegrityError("statement", "params", "orig")
     

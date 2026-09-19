@@ -1,11 +1,12 @@
 from typing import Any
+from datetime import datetime
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user, require_role
-from app.modules.projects import schemas, service
+from app.modules.projects import schemas, service, observe_service
 from app.shared.models.users import Role, User
 
 router = APIRouter()
@@ -41,3 +42,73 @@ async def get_project(
     await check_role(organization_id=project.organization_id, current_user=current_user, db=db)
     
     return project
+
+
+@router.get("/projects/{project_id}/observe/metrics", response_model=schemas.ObserveMetricsResponse)
+async def get_observe_metrics(
+    project_id: str,
+    start_time: datetime,
+    end_time: datetime,
+    model: str | None = None,
+    environment: str | None = None,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+) -> Any:
+    project = await service.get_project(db, project_id)
+    check_role = require_role(Role.VIEWER)
+    await check_role(organization_id=project.organization_id, current_user=current_user, db=db)
+
+    return await observe_service.get_metrics(db, project_id, start_time, end_time, model, environment)
+
+
+@router.get("/projects/{project_id}/observe/timeseries", response_model=schemas.ObserveTimeseriesResponse)
+async def get_observe_timeseries(
+    project_id: str,
+    start_time: datetime,
+    end_time: datetime,
+    interval: str,
+    model: str | None = None,
+    environment: str | None = None,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+) -> Any:
+    project = await service.get_project(db, project_id)
+    check_role = require_role(Role.VIEWER)
+    await check_role(organization_id=project.organization_id, current_user=current_user, db=db)
+
+    return await observe_service.get_timeseries(db, project_id, start_time, end_time, interval, model, environment)
+
+
+@router.get("/projects/{project_id}/observe/filters", response_model=schemas.ObserveFiltersResponse)
+async def get_observe_filters(
+    project_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+) -> Any:
+    project = await service.get_project(db, project_id)
+    check_role = require_role(Role.VIEWER)
+    await check_role(organization_id=project.organization_id, current_user=current_user, db=db)
+
+    return await observe_service.get_filters(db, project_id)
+
+@router.get("/projects/{project_id}/observe/recent-traces", response_model=schemas.ObserveRecentTracesResponse)
+async def get_observe_recent_traces(
+    project_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+) -> Any:
+    project = await service.get_project(db, project_id)
+    check_role = require_role(Role.VIEWER)
+    await check_role(organization_id=project.organization_id, current_user=current_user, db=db)
+
+    traces = await observe_service.get_recent_traces(db, project_id)
+    mapped_traces = [
+        schemas.ObserveRecentTrace(
+            timestamp=t.start_time,
+            trace_id=t.id,
+            status=t.status,
+            latency_ms=t.latency_ms,
+            model=t.model
+        ) for t in traces
+    ]
+    return schemas.ObserveRecentTracesResponse(traces=mapped_traces)
