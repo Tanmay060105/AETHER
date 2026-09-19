@@ -29,8 +29,8 @@ async def create_api_key(
     api_key, raw_key = await service.create_api_key(db, project_id, api_key_in)
     
     return schemas.APIKeyCreatedResponse(
-        id=api_key.id,
-        project_id=api_key.project_id,
+        id=str(api_key.id),
+        project_id=str(api_key.project_id),
         name=api_key.name,
         prefix=api_key.prefix,
         key=raw_key
